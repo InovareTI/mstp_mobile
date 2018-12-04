@@ -54,6 +54,7 @@ import org.apache.commons.mail.EmailException;
 import Classes.Agenda;
 import Classes.Cliente;
 import Classes.Conexao;
+import Classes.Feriado;
 import Classes.MercadoPago;
 import Classes.Pessoa;
 
@@ -153,6 +154,7 @@ public class Op_Servlet extends HttpServlet {
 			HttpSession session = req.getSession(true);
 			Conexao conn = (Conexao) session.getAttribute("conexao");
 			Pessoa p= (Pessoa) session.getAttribute("pessoa");
+			Feriado feriado= new Feriado();
 			//Cliente c= new Cliente();
 			//Agenda agenda=new Agenda();
 			Calendar d = Calendar.getInstance();
@@ -1002,45 +1004,74 @@ public class Op_Servlet extends HttpServlet {
 						
 					}else if(opt.equals("23")){
 						String cor="";
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						String problema="ok";
 						param1="";
+						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd"); 
 						param1=req.getParameter("mes");
-						int mes=Integer.parseInt(param1);
-						req.removeAttribute("mes");
-						System.out.println("mes de pesquinsa: "+param1);
+						param2=req.getParameter("inicio");
+						param3=req.getParameter("fim");
+						Calendar inicio= Calendar.getInstance();
+						Calendar fim= Calendar.getInstance();
+						Date dt_inicio=format.parse(param2);
+						Date dt_fim=format.parse(param3);
+						inicio.setTime(dt_inicio);
+						fim.setTime(dt_fim);
+						
+						//System.out.println("mes de pesquisa: "+param1);
+						//System.out.println("inicio: "+param2);
+						//System.out.println("fim: "+param3);
 							dados_tabela="[";
 							d.set(Calendar.MONTH, (Integer.parseInt(param1)-2));
 							d.set(Calendar.DAY_OF_MONTH, 1);
 							//System.out.println(f2.format(d.getTime())); 
 							//System.out.println(d.get(Calendar.MONTH));
-							while(mes>=(d.get(Calendar.MONTH)+1)) {
-							      if(d.getTime().after(time2)) {
-							    	  
-							      }else {
-									if(d.get(Calendar.DAY_OF_WEEK)==1 || d.get(Calendar.DAY_OF_WEEK)==7) {
-										cor="#87CEFA";
+							while(inicio.before(fim)) {
+								problema="ok";
+									if(inicio.get(Calendar.DAY_OF_WEEK)==1 || inicio.get(Calendar.DAY_OF_WEEK)==7) {
+										cor="#0099ff";
+									}else if(feriado.verifica_feriado(f2.format(inicio.getTime()), conn, p)) {
+										cor="#0099ff";
 									}else {
-										query="select datetime_mobile from registros where data_dia='"+f2.format(d.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Entrada'";
+										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Entrada'";
 										rs=conn.Consulta(query);
 										if(rs.next()) {
-												cor="#00FF00";
+											problema="ok";
 										}else {
-												cor="#FF7F50";
+											problema="nok";
 										}
-										query="select datetime_mobile from registros where data_dia='"+f2.format(d.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Saída'";
+										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Inicio_intervalo'";
 										rs=conn.Consulta(query);
 										if(rs.next()) {
-												cor="#00FF00";
+											problema="ok";
 										}else {
-												cor="#FF7F50";
+											problema="nok";
+										}
+										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Fim_intervalo'";
+										rs=conn.Consulta(query);
+										if(rs.next()) {
+											problema="ok";
+										}else {
+											problema="nok";
+										}
+										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Saída'";
+										rs=conn.Consulta(query);
+										if(rs.next()) {
+											problema="ok";
+										}else {
+											problema="nok";
 										}
 										
+									if(problema.equals("ok")) {
+										cor="#00e600";
+									}else {
+										cor="#ff5350";
 									}
-									time = new Timestamp(d.getTimeInMillis());
-									dados_tabela=dados_tabela+"{\"start\":\""+time.toString().substring(0, 10)+"\",\"rendering\": \"background\",\"allDay\":\"true\",\"color\":\""+cor+"\"},\n";
+									
 									
 							      }
-							      d.add(Calendar.DAY_OF_MONTH, 1);
+									time = new Timestamp(inicio.getTimeInMillis());
+									dados_tabela=dados_tabela+"{\"start\":\""+time.toString().substring(0, 10)+"\",\"rendering\": \"background\",\"allDay\":\"true\",\"color\":\""+cor+"\"},\n";
+									inicio.add(Calendar.DAY_OF_MONTH, 1);
 									
 							}
 							
@@ -1067,40 +1098,77 @@ public class Op_Servlet extends HttpServlet {
 						}
 					}else if(opt.equals("25")){
 						param1=req.getParameter("data");
-						String mensagem;
-						query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+param1+"' and tipo_registro='Entrada' order by datetime_servlet desc limit 1";
+						String mensagem="";
+						mensagem="[\"00:01\",\"00:01\",\"00:01\",\"00:01\"]";
+						query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+param1+"' and tipo_registro='Entrada' order by datetime_servlet asc limit 1";
 						//System.out.println(query);
 						rs=conn.Consulta(query);
 						if(rs.next()) {
-							mensagem="[\""+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
-						}else {
-							mensagem="[\"00:01\",";
-						}
-						query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+param1+"' and tipo_registro='Inicio_intervalo' order by datetime_servlet desc limit 1";
-						//System.out.println(query);
-						rs=conn.Consulta(query);
-						if(rs.next()) {
-							mensagem=mensagem+"\""+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
-						}else {
-							mensagem=mensagem+"\"00:01\",";
-						}
-						query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+param1+"' and tipo_registro='Fim_intervalo' order by datetime_servlet desc limit 1";
-						//System.out.println(query);
-						rs=conn.Consulta(query);
-						if(rs.next()) {
-							mensagem=mensagem+"\""+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
-						}else {
-							mensagem=mensagem+"\"00:01\",";
-						}
-						query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+param1+"' and tipo_registro='Saída'";
-						//System.out.println(query);
-						rs=conn.Consulta(query);
-						if(rs.next()) {
-							mensagem=mensagem+"\""+rs.getInt("hora")+":"+rs.getInt("minutos")+"\"]";
-						}else {
-							mensagem=mensagem+"\"00:01\"]";
-						}
-						//System.out.println(mensagem);
+							if(rs.getInt("hora")<10 && rs.getInt("minutos")<10) {
+								mensagem="[\"0"+rs.getInt("hora")+":0"+rs.getInt("minutos")+"\",";
+								}else if(rs.getInt("hora")<10){
+									mensagem="[\"0"+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
+								}else if(rs.getInt("minutos")<10) {
+									mensagem="[\""+rs.getInt("hora")+":0"+rs.getInt("minutos")+"\",";
+								}else {
+									mensagem="[\""+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
+								}
+							}else {
+								mensagem="[\"00:01\",";
+							}
+						    query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+param1+"' and tipo_registro='Inicio_intervalo' order by datetime_servlet asc limit 1";
+							//System.out.println(query);
+							rs=conn.Consulta(query);
+							if(rs.next()) {
+								if(rs.getInt("hora")<10 && rs.getInt("minutos")<10) {
+									mensagem=mensagem+"\"0"+rs.getInt("hora")+":0"+rs.getInt("minutos")+"\",";
+									}else if(rs.getInt("hora")<10){
+										mensagem=mensagem+"\"0"+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
+									}else if(rs.getInt("minutos")<10) {
+										mensagem=mensagem+"\""+rs.getInt("hora")+":0"+rs.getInt("minutos")+"\",";
+									}else {
+										mensagem=mensagem+"\""+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
+									}
+							
+							}else {
+								mensagem=mensagem+"\"00:01\",";
+							}
+							 query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+param1+"' and tipo_registro='Fim_intervalo' order by datetime_servlet asc limit 1";
+								//System.out.println(query);
+							rs=conn.Consulta(query);
+							if(rs.next()) {
+								if(rs.getInt("hora")<10 && rs.getInt("minutos")<10) {
+									mensagem=mensagem+"\"0"+rs.getInt("hora")+":0"+rs.getInt("minutos")+"\",";
+									}else if(rs.getInt("hora")<10){
+										mensagem=mensagem+"\"0"+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
+									}else if(rs.getInt("minutos")<10) {
+										mensagem=mensagem+"\""+rs.getInt("hora")+":0"+rs.getInt("minutos")+"\",";
+									}else {
+										mensagem=mensagem+"\""+rs.getInt("hora")+":"+rs.getInt("minutos")+"\",";
+									}
+							}else {
+								mensagem=mensagem+"\"00:01\",";
+							}
+							query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+param1+"' and tipo_registro='Saída' order by datetime_servlet asc limit 1";
+							//System.out.println(query);
+						    rs=conn.Consulta(query);
+						    if(rs.next()) {
+								if(rs.getInt("hora")<10 && rs.getInt("minutos")<10) {
+									mensagem=mensagem+"\"0"+rs.getInt("hora")+":0"+rs.getInt("minutos")+"\"]";
+									}else if(rs.getInt("hora")<10){
+										mensagem=mensagem+"\"0"+rs.getInt("hora")+":"+rs.getInt("minutos")+"\"]";
+									}else if(rs.getInt("minutos")<10) {
+										mensagem=mensagem+"\""+rs.getInt("hora")+":0"+rs.getInt("minutos")+"\"]";
+									}else {
+										mensagem=mensagem+"\""+rs.getInt("hora")+":"+rs.getInt("minutos")+"\"]";
+									}
+							}else {
+								mensagem=mensagem+"\"00:01\"]";
+							}
+						
+						
+						
+						System.out.println(mensagem);
 						resp.setContentType("application/json");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
@@ -1648,6 +1716,15 @@ public class Op_Servlet extends HttpServlet {
 							}
 						}
 					
+			}else if(opt.equals("40")){
+				param1=req.getParameter("log");
+				Semail email=new Semail();
+				email.enviaEmailSimples("fabio.albuquerque@inovare-ti.com", "MSTP Mobile - LOG DE ERRO ENVIADO","ENVIADO POR: "+p.get_PessoaUsuario()+", \n \n data de envio: "+time+" \n\n LOG: \n\n "+param1);
+				resp.setContentType("application/text");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print("Log do erro enviado com sucesso! estaremos analisando as possíveis causas e soluções!");
+				
 			}
 	 }catch (SQLException e) {
 				
@@ -1665,6 +1742,12 @@ public class Op_Servlet extends HttpServlet {
 	            System.out.print(e.getCause());
 	            System.out.print(e.getStackTrace());
 	        } catch (FileUploadException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (EmailException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
