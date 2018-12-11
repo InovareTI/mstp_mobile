@@ -1010,8 +1010,10 @@ public class Op_Servlet extends HttpServlet {
 						param1=req.getParameter("mes");
 						param2=req.getParameter("inicio");
 						param3=req.getParameter("fim");
+						
 						Calendar inicio= Calendar.getInstance();
 						Calendar fim= Calendar.getInstance();
+						param3=param3.replace("undefined", Integer.toString(fim.get(Calendar.DAY_OF_MONTH)));
 						Date dt_inicio=format.parse(param2);
 						Date dt_fim=format.parse(param3);
 						inicio.setTime(dt_inicio);
