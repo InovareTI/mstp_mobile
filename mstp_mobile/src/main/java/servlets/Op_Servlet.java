@@ -1033,6 +1033,9 @@ public class Op_Servlet extends HttpServlet {
 										cor="#0099ff";
 									}else if(feriado.verifica_feriado(f2.format(inicio.getTime()), conn, p)) {
 										cor="#0099ff";
+									}else if(p.VerificaFolga(p.get_PessoaUsuario(), f2.format(inicio.getTime()), conn)) {
+										cor="#00e600";
+										problema="ok";
 									}else {
 										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Entrada'";
 										rs=conn.Consulta(query);
