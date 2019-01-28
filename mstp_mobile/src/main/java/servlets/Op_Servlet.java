@@ -2,18 +2,9 @@ package servlets;
 
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Blob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,17 +15,17 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -47,17 +38,15 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.mail.EmailException;
+import org.bson.Document;
+import org.json.JSONException;
 
-import Classes.Agenda;
-import Classes.Cliente;
 import Classes.Conexao;
+import Classes.ConexaoMongo;
 import Classes.Feriado;
-import Classes.MercadoPago;
 import Classes.Pessoa;
-
 import Classes.Semail;
 
 /**
@@ -1326,6 +1315,23 @@ public class Op_Servlet extends HttpServlet {
 							param3=req.getParameter("_");
 							query="insert into localiza_usuarios (usuario,lat,lng,empresa) values ('"+p.get_PessoaUsuario()+"','"+param1+"','"+param2+"','"+p.getEmpresa()+"')";
 							conn.Inserir_simples(query);
+							ConexaoMongo c = new ConexaoMongo();
+							Document document = new Document();
+							Document properties = new Document();
+							Document geometry = new Document();
+							Document geo = new Document();
+							geometry.append("type", "Point");
+							geometry.append("coordinates", Arrays.asList(Double.parseDouble(param2.replaceAll(",", ".")),Double.parseDouble(param1.replaceAll(",", "."))));
+							properties.append("Usuario",p.get_PessoaUsuario());
+    						properties.append("Data",time.toString());
+    						document.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+    						geo.append("type", "Feature");
+    						geo.append("geometry", geometry);
+    						geo.append("properties", properties);
+    						document.append("GEO", geo);
+    						c.InserirSimpels("Localiza_Usuarios", document);
+    						c.fecharConexao();
+							
 						}else if(opt.equals("31")){
 							System.out.println("buscando quantidade atividades para "+p.get_PessoaUsuario());
 							query="";
