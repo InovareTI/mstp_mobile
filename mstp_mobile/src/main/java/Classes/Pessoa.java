@@ -67,6 +67,22 @@ public void setPerfil_funcoes(Conexao conn) {
 	public String getEscritorio() {
 		return escritorio;
 	}
+	
+	public boolean VerificaFolga(String usario, String data, Conexao c) {
+		String query;
+		query="select datetime_mobile from registros where data_dia='"+data+"' and usuario='"+usuario+"' and tipo_registro='Folga'";
+		//System.out.println(query);
+		rs=c.Consulta(query);
+		try {
+		if(rs.next()) {
+			return true;
+		}else {
+			return false;
+		}
+		}catch (SQLException e) {
+			return false;
+		}
+	}
 	public void setEscritorio(String escritorio) {
 		this.escritorio = escritorio;
 	}
