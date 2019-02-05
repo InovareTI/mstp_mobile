@@ -1326,7 +1326,7 @@ public class Op_Servlet extends HttpServlet {
 							geometry.append("type", "Point");
 							geometry.append("coordinates", Arrays.asList(Double.parseDouble(param2.replaceAll(",", ".")),Double.parseDouble(param1.replaceAll(",", "."))));
 							properties.append("Usuario",p.get_PessoaUsuario());
-    						properties.append("Data",time.toString());
+    						properties.append("Data",time);
     						document.append("Empresa", p.getEmpresaObj().getEmpresa_id());
     						geo.append("type", "Feature");
     						geo.append("geometry", geometry);
