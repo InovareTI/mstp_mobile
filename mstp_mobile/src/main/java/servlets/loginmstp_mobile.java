@@ -83,10 +83,10 @@ public class loginmstp_mobile extends HttpServlet {
         System.out.println("Servlet de Login do MSTP Mobile - "+f3.format(time));
 		try {
 			HttpSession session = req.getSession(true);
-				md = MessageDigest.getInstance( "SHA-256" );
-				md.update( req.getParameter("pwd").getBytes());     
-		        BigInteger hash = new BigInteger(1,md.digest() );     
-		        String retornaSenha = hash.toString(16);   
+			md = MessageDigest.getInstance( "SHA-256" );
+			md.update( req.getParameter("pwd").getBytes());     
+		    BigInteger hash = new BigInteger(1,md.digest() );     
+		    String retornaSenha = hash.toString(16);   
 	        String versao_mobile=req.getParameter("version");
 	        String aparelho=req.getParameter("aparelho_id");
 	        String vinculo_flag=req.getParameter("vinculo_flag");
@@ -112,7 +112,13 @@ public class loginmstp_mobile extends HttpServlet {
        				PrintWriter out = resp.getWriter();
        				dados="[[\"Celular não autorizado\"],[\"\"]]";
        				out.print(dados);
-        		}else {
+        		}else if(rs.getString("ferias").equals("Y")){
+        			resp.setContentType("application/html");  
+       				resp.setCharacterEncoding("UTF-8"); 
+       				PrintWriter out = resp.getWriter();
+       				dados="[[\"Usuário em período de Férias - Acesso não permitido\"],[\"\"]]";
+       				out.print(dados);
+        		}else {	
         		if(rs.getString("VALIDADO").equals("Y")) {
         			if(rs.getString("HASH").equals(retornaSenha)) {
                 session.setAttribute("conexao",con);

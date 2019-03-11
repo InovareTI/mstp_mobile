@@ -53,7 +53,7 @@ validRange: {
                   type: "POST",
                   data: {"opt":25,
                         "data":date.format('L')},		  
-                  url: "http://node21664-inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+                  url: "http://192.168.0.29:8080/mstp_mobile/Op_Servlet",	  
                   cache: false,
                   dataType: "text",
                   success: onSuccess_mostra_registro
@@ -69,7 +69,7 @@ validRange: {
           }
       },
       events: {
-        url: 'http://node21664-inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet',
+        url: 'http://192.168.0.29:8080/mstp_mobile/Op_Servlet',
         type: 'POST',
         data: {
           opt: '23',
@@ -89,7 +89,7 @@ function calendario_prev() {
 	     alert(geral.mes_calendario);
 	     $('#calendar').fullCalendar({
 	     events: {
-	        url: 'http://node21664-inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet',
+	        url: 'http://192.168.0.29:8080/mstp_mobile/Op_Servlet',
 	        type: 'POST',
 	        cache:false,
 	        data: {
@@ -105,7 +105,7 @@ function calendario_next() {
      geral.mes_calendario++;
       $('#calendar').fullCalendar({
      events: {
-        url: 'http://node21664-inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet',
+        url: 'http://192.168.0.29:8080/mstp_mobile/Op_Servlet',
         type: 'POST',
         data: {
           opt: '23',
