@@ -1373,7 +1373,7 @@ public class Op_Servlet extends HttpServlet {
     						geo.append("properties", properties);
     						document.append("GEO", geo);
     						cm.InserirSimpels("Localiza_Usuarios", document);
-    						cm.fecharConexao();
+    						
 							
 						}else if(opt.equals("31")){
 							System.out.println("buscando quantidade atividades para "+p.get_PessoaUsuario());
@@ -1399,27 +1399,38 @@ public class Op_Servlet extends HttpServlet {
 							Bson filtro;
 							Document linha_rollout=new Document();
 							List<Bson> lista_filtro = new ArrayList<Bson>();
-							filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
-							lista_filtro.add(filtro);
-							filtro= Filters.elemMatch("Milestone", Filters.eq("edate_INSTALAÇÃO",""));
-							lista_filtro.add(filtro);
-							filtro= Filters.elemMatch("Milestone", Filters.eq("resp_INSTALAÇÃO",p.get_PessoaUsuario()));
-							lista_filtro.add(filtro);
-							//query="select * from rollout where tipo_campo='Milestone' and responsavel='"+p.get_PessoaUsuario()+"' and dt_fim in ('','01/01/1800') ";
-							FindIterable<Document> findIterable = cm.ConsultaCollectioncomFiltrosLista("rollout", lista_filtro);
-							MongoCursor<Document> resultado = findIterable.iterator();
-							if(resultado.hasNext()) {
-								while(resultado.hasNext()) {
-									linha_rollout=resultado.next();
-									dados_tabela=dados_tabela+"<ons-card >\n"+
-										      "<div class='title' style='display:block'>"+linha_rollout.getString("Site ID")+"<div style='float:right'><img src='img/finished.png'></div></div>\n"+
-										      "<div class=\"content\"><div>Planejamento:"+linha_rollout.get("Milestone",ArrayList.class).getClass()+" - "+ linha_rollout.getString("Site ID")+"</div><div>Site:teste</div><hr><br>"
-										      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"></i></section>"+		
-										     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
-										    "</ons-card>\n";
+							rs=conn.Consulta("select field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
+							if(rs.next()) {
+								rs.beforeFirst();
+								while(rs.next()) {
+									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+									lista_filtro.add(filtro);
+									filtro= Filters.elemMatch("Milestone", Filters.eq("edate_"+rs.getString(1),""));
+									lista_filtro.add(filtro);
+									filtro= Filters.elemMatch("Milestone", Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario()));
+									lista_filtro.add(filtro);
+									FindIterable<Document> findIterable = cm.ConsultaCollectioncomFiltrosLista("rollout", lista_filtro);
+									MongoCursor<Document> resultado = findIterable.iterator();
+									if(resultado.hasNext()) {
+										while(resultado.hasNext()) {
+											linha_rollout=resultado.next();
+											dados_tabela=dados_tabela+"<ons-card >\n"+
+												      "<div class='title' style='display:block'>"+linha_rollout.getString("Site ID")+"<div style='float:right'><img src='img/finished.png'></div></div>\n"+
+												      "<div class=\"content\"><div>Planejamento:"+linha_rollout.get("Milestone",ArrayList.class).getClass()+" - "+ linha_rollout.getString("Site ID")+"</div><div>Site:teste</div><hr><br>"
+												      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"></i></section>"+		
+												     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
+												    "</ons-card>\n";
+										}
+									}
+								lista_filtro.clear();
 								}
 							}
-							rs=conn.Consulta(query);
+							
+							//query="select * from rollout where tipo_campo='Milestone' and responsavel='"+p.get_PessoaUsuario()+"' and dt_fim in ('','01/01/1800') ";
+							
+							
+							
+							/*rs=conn.Consulta(query);
 							if(rs.next()) {
 								rs.beforeFirst();
 								status_bt="false";
@@ -1448,13 +1459,13 @@ public class Op_Servlet extends HttpServlet {
 									      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"></i></section>"		
 									      + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
 									    "</ons-card>\n";
-									}
+									}*/
 								//System.out.println(dados_tabela);
 								resp.setContentType("application/html");  
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
 								out.print(dados_tabela);
-							}
+							
 						}else if(opt.equals("33")){
 							
 							param1=req.getParameter("recid");

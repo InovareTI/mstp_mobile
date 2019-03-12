@@ -388,8 +388,8 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 			return true;
 		}
 	}
-	public void fecharConexao() {
+	public void fecharConexao(String origem) {
 		 this.mongoClient.close();
-		 System.out.println("Conexão encerrada com sucesso");
+		 System.out.println("Conexão encerrada com sucesso. Chamada de :"+origem);
 	}
 }

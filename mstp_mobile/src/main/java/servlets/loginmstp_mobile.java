@@ -209,6 +209,7 @@ public class loginmstp_mobile extends HttpServlet {
            			 rs.close();
                     rs=null;
                     con.fecharConexao();
+                    cm.fecharConexao("Servlet de Login, linha 212");
            			resp.setContentType("application/html");  
        				resp.setCharacterEncoding("UTF-8"); 
        				PrintWriter out = resp.getWriter();
@@ -220,6 +221,7 @@ public class loginmstp_mobile extends HttpServlet {
         			 rs.close();
                  rs=null;
                  con.fecharConexao();
+                 cm.fecharConexao("Servlet de Login, linha 224");
         			resp.setContentType("application/html");  
     				resp.setCharacterEncoding("UTF-8"); 
     				PrintWriter out = resp.getWriter();
@@ -231,6 +233,7 @@ public class loginmstp_mobile extends HttpServlet {
 	        
 		} catch (NoSuchAlgorithmException e) {
 			con.fecharConexao();
+			cm.fecharConexao("Servlet de Login, linha 236");
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  catch (SQLException sqle) {
