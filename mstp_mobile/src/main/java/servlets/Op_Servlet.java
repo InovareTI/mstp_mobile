@@ -15,6 +15,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -41,7 +42,12 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.mail.EmailException;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONException;
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 import Classes.Conexao;
 import Classes.ConexaoMongo;
@@ -142,6 +148,7 @@ public class Op_Servlet extends HttpServlet {
 			Locale.setDefault(locale_ptBR);
 			HttpSession session = req.getSession(true);
 			Conexao conn = (Conexao) session.getAttribute("conexao");
+			ConexaoMongo cm = (ConexaoMongo) session.getAttribute("conexaoMongo");
 			Pessoa p= (Pessoa) session.getAttribute("pessoa");
 			Feriado feriado= new Feriado();
 			//Cliente c= new Cliente();
@@ -162,7 +169,7 @@ public class Op_Servlet extends HttpServlet {
 				System.out.println(p.get_PessoaUsuario()+" - Chegou no servlet de Operações do MSTP Mobile - "+f3.format(time)+" Opção:"+opt);
 				if(opt.equals("1")) {
 					System.out.println("Inserindo Registro - "+f3.format(time));
-					ConexaoMongo c = new ConexaoMongo();
+					
 					Document registro=new Document();
 					Document geo = new Document();
 					Document geometry = new Document();
@@ -252,7 +259,7 @@ public class Op_Servlet extends HttpServlet {
 	    					registro.append("site_operadora_registro", array_string_aux[2]);
 	    					registro.append("timeStamp_mobile", param3);
 	    					registro.append("GEO", geo);
-				    		c.InserirSimpels("Registros", registro);
+				    		cm.InserirSimpels("Registros", registro);
 				    		rs=conn.Consulta("Select * from registros order by id_sistema desc limit 1");
 				    		if(rs.next()){
 				    			last_id=rs.getInt(1);
@@ -1351,7 +1358,7 @@ public class Op_Servlet extends HttpServlet {
 							param3=req.getParameter("_");
 							//query="insert into localiza_usuarios (usuario,lat,lng,empresa) values ('"+p.get_PessoaUsuario()+"','"+param1+"','"+param2+"','"+p.getEmpresa()+"')";
 							//conn.Inserir_simples(query);
-							ConexaoMongo c = new ConexaoMongo();
+							
 							Document document = new Document();
 							Document properties = new Document();
 							Document geometry = new Document();
@@ -1365,8 +1372,8 @@ public class Op_Servlet extends HttpServlet {
     						geo.append("geometry", geometry);
     						geo.append("properties", properties);
     						document.append("GEO", geo);
-    						c.InserirSimpels("Localiza_Usuarios", document);
-    						c.fecharConexao();
+    						cm.InserirSimpels("Localiza_Usuarios", document);
+    						cm.fecharConexao();
 							
 						}else if(opt.equals("31")){
 							System.out.println("buscando quantidade atividades para "+p.get_PessoaUsuario());
@@ -1389,7 +1396,29 @@ public class Op_Servlet extends HttpServlet {
 							String imagem_status;
 							String bt_texto="";
 							String status_bt="";
-							query="select * from rollout where tipo_campo='Milestone' and responsavel='"+p.get_PessoaUsuario()+"' and dt_fim in ('','01/01/1800') ";
+							Bson filtro;
+							Document linha_rollout=new Document();
+							List<Bson> lista_filtro = new ArrayList<Bson>();
+							filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+							lista_filtro.add(filtro);
+							filtro= Filters.elemMatch("Milestone", Filters.eq("edate_INSTALAÇÃO",""));
+							lista_filtro.add(filtro);
+							filtro= Filters.elemMatch("Milestone", Filters.eq("resp_INSTALAÇÃO",p.get_PessoaUsuario()));
+							lista_filtro.add(filtro);
+							//query="select * from rollout where tipo_campo='Milestone' and responsavel='"+p.get_PessoaUsuario()+"' and dt_fim in ('','01/01/1800') ";
+							FindIterable<Document> findIterable = cm.ConsultaCollectioncomFiltrosLista("rollout", lista_filtro);
+							MongoCursor<Document> resultado = findIterable.iterator();
+							if(resultado.hasNext()) {
+								while(resultado.hasNext()) {
+									linha_rollout=resultado.next();
+									dados_tabela=dados_tabela+"<ons-card >\n"+
+										      "<div class='title' style='display:block'>"+linha_rollout.getString("Site ID")+"<div style='float:right'><img src='img/finished.png'></div></div>\n"+
+										      "<div class=\"content\"><div>Planejamento:"+linha_rollout.get("Milestone",ArrayList.class).getClass()+" - "+ linha_rollout.getString("Site ID")+"</div><div>Site:teste</div><hr><br>"
+										      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"></i></section>"+		
+										     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
+										    "</ons-card>\n";
+								}
+							}
 							rs=conn.Consulta(query);
 							if(rs.next()) {
 								rs.beforeFirst();
@@ -1416,7 +1445,8 @@ public class Op_Servlet extends HttpServlet {
 								dados_tabela=dados_tabela+"<ons-card >\n"+
 									      "<div class='title' style='display:block'>"+rs.getString("milestone")+"<div style='float:right'><img src='img/"+imagem_status+"'></div></div>\n"+
 									      "<div class=\"content\"><div>Planejamento:"+rs.getString("dt_inicio_bl")+" - "+ rs.getString("dt_fim_bl")+"</div><div>Site:"+ rs.getString("value_atbr_field")+"</div><hr><br>"
-									      		+ "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
+									      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"></i></section>"		
+									      + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
 									    "</ons-card>\n";
 									}
 								//System.out.println(dados_tabela);
@@ -1434,7 +1464,7 @@ public class Op_Servlet extends HttpServlet {
 							System.out.println(param1);
 							System.out.println(param2);
 							System.out.println(param3);
-							ConexaoMongo c = new ConexaoMongo();
+							
 							Document historico = new Document();
 							query="";
 							if(param3.equals("Finalizada")) {
@@ -1449,7 +1479,7 @@ public class Op_Servlet extends HttpServlet {
 	    				        historico.append("Novo Valor" , f2.format(time));
 	    				        historico.append("update_by", p.get_PessoaUsuario());
 	    				        historico.append("update_time", time);
-	    				        c.InserirSimpels("rollout_history", historico);
+	    				        cm.InserirSimpels("rollout_history", historico);
 	    						historico.clear();
 							}else if(param3.equals("nao iniciada")){
 								query="update rollout set dt_inicio='"+f2.format(time)+"',status_atividade='iniciada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
@@ -1463,7 +1493,7 @@ public class Op_Servlet extends HttpServlet {
 	    				        historico.append("Novo Valor" , f2.format(time));
 	    				        historico.append("update_by", p.get_PessoaUsuario());
 	    				        historico.append("update_time", time);
-	    				        c.InserirSimpels("rollout_history", historico);
+	    				        cm.InserirSimpels("rollout_history", historico);
 	    						historico.clear();
 							}else if(param3.equals("iniciada")) {
 								query="update rollout set status_atividade='parada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
@@ -1477,7 +1507,7 @@ public class Op_Servlet extends HttpServlet {
 	    				        historico.append("Novo Valor" , "parada");
 	    				        historico.append("update_by", p.get_PessoaUsuario());
 	    				        historico.append("update_time", time);
-	    				        c.InserirSimpels("rollout_history", historico);
+	    				        cm.InserirSimpels("rollout_history", historico);
 							}else if(param3.equals("parada")) {
 								query="update rollout set status_atividade='iniciada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
@@ -1490,7 +1520,7 @@ public class Op_Servlet extends HttpServlet {
 	    				        historico.append("Novo Valor" , "iniciada");
 	    				        historico.append("update_by", p.get_PessoaUsuario());
 	    				        historico.append("update_time", time);
-	    				        c.InserirSimpels("rollout_history", historico);
+	    				        cm.InserirSimpels("rollout_history", historico);
 							}
 							System.out.println(query);
 							if(conn.Update_simples(query)) {

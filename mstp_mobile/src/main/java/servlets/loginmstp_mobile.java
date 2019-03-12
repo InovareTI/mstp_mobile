@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import Classes.Conexao;
+import Classes.ConexaoMongo;
 import Classes.MercadoPago;
 import Classes.Pessoa;
 
@@ -67,7 +68,7 @@ public class loginmstp_mobile extends HttpServlet {
 	public void login(HttpServletRequest req, HttpServletResponse resp)throws ServletException, IOException{
 		
 		Conexao con = new Conexao();
-		
+		ConexaoMongo cm = new ConexaoMongo();
 		String dados;
         dados="";
         String last_login_type="";
@@ -122,6 +123,7 @@ public class loginmstp_mobile extends HttpServlet {
         		if(rs.getString("VALIDADO").equals("Y")) {
         			if(rs.getString("HASH").equals(retornaSenha)) {
                 session.setAttribute("conexao",con);
+                session.setAttribute("conexaoMongo",cm);
                 Pessoa p=new Pessoa();
                 p.set_PessoaUsuario(rs.getString("id_usuario"));
                 p.setEmpresa(rs.getString("empresa"));
