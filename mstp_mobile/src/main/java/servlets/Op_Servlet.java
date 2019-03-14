@@ -140,21 +140,19 @@ public class Op_Servlet extends HttpServlet {
 			insere="";
 			opt="";
 			dados_tabela="";
-			double money; 
-			NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
-			String moneyString;
+			
 			rs2=null;
 			Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 			Locale.setDefault(locale_ptBR);
 			HttpSession session = req.getSession(true);
 			Conexao conn = (Conexao) session.getAttribute("conexao");
-			ConexaoMongo cm = (ConexaoMongo) session.getAttribute("conexaoMongo");
+			ConexaoMongo cm = new ConexaoMongo();
 			Pessoa p= (Pessoa) session.getAttribute("pessoa");
 			Feriado feriado= new Feriado();
 			//Cliente c= new Cliente();
 			//Agenda agenda=new Agenda();
 			Calendar d = Calendar.getInstance();
-			Date data = d.getTime();
+			
 			d.get(Calendar.MONTH);
 			
 			//System.out.println(data.);
@@ -798,29 +796,55 @@ public class Op_Servlet extends HttpServlet {
 						
 					}else if(opt.equals("15")) {
 						//System.out.println("Realizando consulta de sites");
-						param1=req.getParameter("usuario");
+						Bson filtro;
+						Document site = new Document();
+						List<Bson> lista_filtro = new ArrayList<Bson>();
 						param2=req.getParameter("operadora");
+						FindIterable<Document> findIterable;
 						if(param2.contains(";")) {
+							
 						String[]aux1=param2.split(";");
+						filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+						lista_filtro.add(filtro);
+						filtro = Filters.eq("site_operadora",aux1[0]);
+						lista_filtro.add(filtro);
+						filtro = Filters.eq("site_uf",aux1[1]);
+						lista_filtro.add(filtro);
+						filtro = Filters.eq("site_ativo","Y");
+						lista_filtro.add(filtro);
 						System.out.println(aux1[0]);
 						System.out.println(aux1[1]);
 						if(aux1[0].toUpperCase().equals("VIVO") || aux1[0].toUpperCase().equals("TIM") || aux1[0].toUpperCase().equals("OI") || aux1[0].toUpperCase().equals("CLARO")) {
-							query="select * from sites where site_operadora='"+aux1[0]+"' and site_uf='"+aux1[1]+"' and site_ativo='Y'";
+							findIterable= cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
+							//query="select * from sites where site_operadora='"+aux1[0]+"' and site_uf='"+aux1[1]+"' and site_ativo='Y'";
 						}else {
-							query="select * from sites where site_id like '%"+aux1[0]+"%' and site_ativo='Y'";
+							lista_filtro.clear();
+							filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+							lista_filtro.add(filtro);
+							filtro = Filters.regex("site_id", ".*"+aux1[0]+".*");
+							lista_filtro.add(filtro);
+							findIterable= cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
+							//query="select * from sites where site_id like '%"+aux1[0]+"%' and site_ativo='Y'";
 						}
 						}else {
-							query="select * from sites where site_id like '%"+param2+"%' and site_ativo='Y'";
+							lista_filtro.clear();
+							filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+							lista_filtro.add(filtro);
+							filtro = Filters.regex("site_id", ".*"+param2+".*");
+							lista_filtro.add(filtro);
+							findIterable= cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
+							//query="select * from sites where site_id like '%"+param2+"%' and site_ativo='Y'";
 						}
 						
 						//System.out.println(query);
-						rs=conn.Consulta(query);
-						if(rs.next()) {
+						//rs=conn.Consulta(query);
+						MongoCursor<Document> resultado = findIterable.iterator();
+						if(resultado.hasNext()) {
 							dados_tabela="[";
-							rs.beforeFirst();
-							while(rs.next()) {
-								
-									dados_tabela=dados_tabela+"[\""+rs.getString("site_id")+"\",\""+rs.getString("site_latitude").replace(",", ".")+"\",\""+rs.getString("site_longitude").replace(",", ".")+"\",\""+rs.getString("site_operadora")+"\",[\""+rs.getInt(1)+"\"]],\n";
+							//rs.beforeFirst();
+							while(resultado.hasNext()) {
+									site = resultado.next();
+									dados_tabela=dados_tabela+"[\""+site.getString("site_id")+"\",\""+site.getString("site_latitude").replace(",", ".")+"\",\""+site.getString("site_longitude").replace(",", ".")+"\",\""+site.getString("site_operadora")+"\",[\""+site.getString("site_id")+"\"]],\n";
 								
 							}
 							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
@@ -830,6 +854,7 @@ public class Op_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
+							cm.fecharConexao("opt 15 - OpServlet");
 						}else {
 							dados_tabela="[]";
 							resp.setContentType("application/html");  
@@ -1417,7 +1442,7 @@ public class Op_Servlet extends HttpServlet {
 											dados_tabela=dados_tabela+"<ons-card >\n"+
 												      "<div class='title' style='display:block'>"+linha_rollout.getString("Site ID")+"<div style='float:right'><img src='img/finished.png'></div></div>\n"+
 												      "<div class=\"content\"><div>Planejamento:"+linha_rollout.get("Milestone",ArrayList.class).getClass()+" - "+ linha_rollout.getString("Site ID")+"</div><div>Site:teste</div><hr><br>"
-												      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"></i></section>"+		
+												      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"  onclick=\"reg_bySite('"+linha_rollout.getString("Site ID")+"','lat','long','Site','"+p.getEmpresaObj().getEmpresa_id()+"')\"></i></section></div>"+		
 												     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
 												    "</ons-card>\n";
 										}
@@ -2107,6 +2132,7 @@ public class Op_Servlet extends HttpServlet {
 			//String msg="";
 			String[] retorno=new String[4];
 			try {
+				if(!entrada.equals("") && !saida.equals("")) {
 				d1 = format.parse(entrada);
 				d2= format.parse(saida);
 				Calendar hora_saida=Calendar.getInstance();
@@ -2158,7 +2184,7 @@ public class Op_Servlet extends HttpServlet {
 					}
 					//msg="BH:" + String.valueOf(twoDForm.format(horas_extras+horas_extras_noturnas));
 					 }
-				
+				}
 				return retorno;
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
