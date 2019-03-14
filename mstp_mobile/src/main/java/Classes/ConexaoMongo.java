@@ -1,6 +1,7 @@
 package Classes;
 
 import java.text.ParseException;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +26,10 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
+
 public class ConexaoMongo {
+	
+	//root.getLogger("org.mongodb.driver.connection").setLevel(org.apache.log4j.Level.OFF);
 	
 	private MongoDatabase db;
 	private MongoClient mongoClient;

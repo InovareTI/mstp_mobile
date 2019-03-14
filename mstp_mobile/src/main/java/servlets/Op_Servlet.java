@@ -94,10 +94,19 @@ public class Op_Servlet extends HttpServlet {
 	}
 	
 	 public void operacoes_mstp_mobile(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	    	ResultSet rs ;
+	    	
+		 String opt;
+		 HttpSession session = req.getSession(true);
+		 Pessoa p= (Pessoa) session.getAttribute("pessoa");
+		 opt=req.getParameter("opt");
+		 if(p==null) {
+			 System.out.println("pessoa null com opcao:"+opt);
+			 return;
+		 }
+		 ResultSet rs ;
 			ResultSet rs2,rs3 ;
 			String dados_tabela;
-			String opt;
+			
 			String insere;
 			String param1;
 			String param2;
@@ -144,10 +153,10 @@ public class Op_Servlet extends HttpServlet {
 			rs2=null;
 			Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 			Locale.setDefault(locale_ptBR);
-			HttpSession session = req.getSession(true);
+			
 			Conexao conn = (Conexao) session.getAttribute("conexao");
 			ConexaoMongo cm = new ConexaoMongo();
-			Pessoa p= (Pessoa) session.getAttribute("pessoa");
+			
 			Feriado feriado= new Feriado();
 			//Cliente c= new Cliente();
 			//Agenda agenda=new Agenda();
@@ -497,6 +506,7 @@ public class Op_Servlet extends HttpServlet {
 	    					    e.printStackTrace();
 	    					} */
 	    				}
+	    				cm.fecharConexao("opt 1 - opServlet");
 				}else if(opt.equals("2")) {
 					param1=req.getParameter("func");
 					//System.out.println("funcionario é " + param1);
@@ -539,6 +549,7 @@ public class Op_Servlet extends HttpServlet {
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
+					cm.fecharConexao("opt 2 - opServlet");
 				}else if(opt.equals("3")) {
 					System.out.println("Alterando Expediente");
 					param1=req.getParameter("entrada");
@@ -550,6 +561,7 @@ public class Op_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print("Dados Alterados com sucesso!");
 					}
+					cm.fecharConexao("opt 3 - opServlet");
 					}else if(opt.equals("4")) {
 						System.out.println("Buscando Expediente");
 						query="select * from expediente";
@@ -562,7 +574,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
-						
+						cm.fecharConexao("opt 4 - opServlet");
 					}else if(opt.equals("5")) {
 						System.out.println("Atualizando Hora Extra e Banco");
 						param1=req.getParameter("hora_extra");
@@ -579,6 +591,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Dados Alterados com sucesso!");
 						}
+						cm.fecharConexao("opt 5 - opServlet");
 					}else if(opt.equals("6")) {
 						System.out.println("Buscando Expediente");
 						query="select * from expediente";
@@ -591,7 +604,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
-						
+						cm.fecharConexao("opt 6 - opServlet");
 					}else if(opt.equals("7")) {
 						param1=req.getParameter("versao_atual");
 						System.out.println("Buscando Versao");
@@ -610,7 +623,7 @@ public class Op_Servlet extends HttpServlet {
 								out.print("update");
 							}
 						}
-						
+						cm.fecharConexao("opt 7 - opServlet");
 					}else if(opt.equals("8")) {
 						
 						if(p.get_PessoaPerfil().equals("ADM")) {
@@ -623,7 +636,7 @@ public class Op_Servlet extends HttpServlet {
 						param7=req.getParameter("nome_ponto");
 						
 						insere="";
-						insere="insert into pontos (latitude_ponto,longitude_ponto,nome_ponto,usuario_registro,ativo) values('"+param1+"','"+param2+"','"+param7+"','"+param6+"','Y')";
+						insere="insert into pontos (latitude_ponto,longitude_ponto,nome_ponto,usuario_registro,ativo,empresa) values('"+param1+"','"+param2+"','"+param7+"','"+param6+"','Y',"+p.getEmpresaObj().getEmpresa_id()+")";
 						if(conn.Inserir_simples(insere)) {
 							resp.setContentType("application/html");  
 							resp.setCharacterEncoding("UTF-8"); 
@@ -641,7 +654,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Voce não possui privilégios para essa operação");
 						}
-						
+						cm.fecharConexao("opt 8 - opServlet");
 					}else if(opt.equals("9")) {
 						System.out.println("Buscando Funcionários");
 						if(p.get_PessoaPerfil().equals("ADM")) {
@@ -672,13 +685,15 @@ public class Op_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						cm.fecharConexao("opt 9 - opServlet");
 					}else if(opt.equals("10")) {
 						System.out.println("Encerrando sessão de "+p.get_PessoaUsuario() +" em  - "+f3.format(time));
 						conn.fecharConexao();
 						session.invalidate();
+						cm.fecharConexao("opt 10 - opServlet");
 					}else if(opt.equals("11")) {
 						String ponto="";
-						query="select * from pontos where ativo='Y'";
+						query="select * from pontos where ativo='Y' and empresa="+p.getEmpresaObj().getEmpresa_id();
 						param1=req.getParameter("usuario");
 						rs=conn.Consulta(query);
 						rs2=conn.Consulta("select id_ponto from usuario_ponto where id_usuario='"+param1+"'");
@@ -703,6 +718,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
+						cm.fecharConexao("opt 11 - opServlet");
 					}else if(opt.equals("12")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -740,6 +756,7 @@ public class Op_Servlet extends HttpServlet {
 								out.print("[[\"Operacao falhou!\"],[\"null\"],[\"null\"],[\"null\"]]");
 							}
 						}
+						cm.fecharConexao("opt 12 - opServlet");
 					}else if(opt.equals("13")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -764,6 +781,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Voce não possui privilégios para essa operação");
 						}
+						cm.fecharConexao("opt 13 - opServlet");
 					}else if(opt.equals("14")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -793,7 +811,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
-						
+						cm.fecharConexao("opt 14 - opServlet");
 					}else if(opt.equals("15")) {
 						//System.out.println("Realizando consulta de sites");
 						Bson filtro;
@@ -862,9 +880,10 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
+						cm.fecharConexao("opt 15 - opServlet");
 					}else if(opt.equals("16")) {
 						System.out.println("Carregando escritorios no mapa");
-						rs=conn.Consulta("Select * from pontos where ativo ='Y' and latitude_ponto<>'' and longitude_ponto<>'' limit 50");
+						rs=conn.Consulta("Select * from pontos where ativo ='Y' and latitude_ponto<>'' and longitude_ponto<>'' and empresa="+p.getEmpresaObj().getEmpresa_id()+" limit 50");
 						//System.out.println("Carregando sites no mapa2");
 						if(rs.next()){
 							//System.out.println("Carregando sites no mapa3");
@@ -891,6 +910,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("vazia");
 						}
+						cm.fecharConexao("opt 16 - opServlet");
 					}else if(opt.equals("17")) {
 
 						param1=req.getParameter("tipo");
@@ -965,19 +985,38 @@ public class Op_Servlet extends HttpServlet {
 							}
 							}
 						}
+						cm.fecharConexao("opt 17 - opServlet");
 					}else if(opt.equals("18")) {
 						System.out.println("Buscando Operadoras");
-						query="select distinct site_operadora,site_uf from sites where site_uf<>'' and site_operadora<>'' and site_ativo='Y'";
-						rs=conn.Consulta(query);
-						if(rs.next()) {
-							rs.beforeFirst();
-							dados_tabela="";
-							while(rs.next()) {
-								dados_tabela=dados_tabela+"<ons-card onclick=\"navega('consulta_sites_page');consulta_sites('"+rs.getString(1)+";"+ rs.getString(2)+"')\">\n"+
-							      "<div class=\"title\">"+rs.getString(1)+" - "+ rs.getString(2)+"</div>\n"+
-							      "<div class=\"content\">Sites "+rs.getString(1)+" - "+ rs.getString(2)+"</div>\n"+
-							    "</ons-card>\n";
+						Bson filtro;
+						List<Bson> lista_filtros= new ArrayList<Bson>();
+						filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+						lista_filtros.add(filtro);
+						filtro=Filters.eq("site_ativo","Y");
+						lista_filtros.add(filtro);
+						List<String> operadora = cm.ConsultaSimplesDistinct("sites", "site_operadora", lista_filtros);
+						//query="select distinct site_operadora,site_uf from sites where site_uf<>'' and site_operadora<>'' and site_ativo='Y'";
+						System.out.println("quantidade de operadoras:"+operadora.size());
+						if(operadora.size()>0) {
+							for(int indice=0;indice<operadora.size();indice++) {
+								lista_filtros= new ArrayList<Bson>();
+								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+								lista_filtros.add(filtro);
+								filtro=Filters.eq("site_ativo","Y");
+								lista_filtros.add(filtro);
+								filtro=Filters.eq("site_operadora",operadora.get(indice));
+								lista_filtros.add(filtro);
+								List<String> uf_operadora = cm.ConsultaSimplesDistinct("sites", "site_uf", lista_filtros);
+								if(uf_operadora.size()>0) {
+									for(int indice_uf=0;indice_uf<uf_operadora.size();indice_uf++) {
+										dados_tabela=dados_tabela+"<ons-card onclick=\"navega('consulta_sites_page');consulta_sites('"+operadora.get(indice)+";"+ uf_operadora.get(indice_uf)+"')\">\n"+
+											      "<div class=\"title\">"+operadora.get(indice)+" - "+ uf_operadora.get(indice_uf)+"</div>\n"+
+											      "<div class=\"content\">Sites "+operadora.get(indice)+" - "+ uf_operadora.get(indice_uf)+"</div>\n"+
+											    "</ons-card>\n";
+									}
+								}
 							}
+							
 							resp.setContentType("application/html");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
@@ -988,6 +1027,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Acesse www.mstp.com.br para carregar sites");
 						}
+						cm.fecharConexao("opt 18 - opServlet");
 					}else if(opt.equals("19")){
 						double horas;
 						query="select sum(he_quantidade),sum(horas_noturnas) from horas_extras where id_usuario='"+p.get_PessoaUsuario()+"' and aprovada='Y' and compensada='N' and other1=''";
@@ -1000,6 +1040,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(horas);
 						}
+						cm.fecharConexao("opt 19 - opServlet");
 					}else if(opt.equals("20")){
 						query="";
 						if(p.get_PessoaEmail().contains("BancoHHApprover")) {
@@ -1028,6 +1069,7 @@ public class Op_Servlet extends HttpServlet {
 								out.print(dados_tabela);
 							}
 						}
+						cm.fecharConexao("opt 20 - opServlet");
 					}else if(opt.equals("21")){
 						query="";
 						query="select id_message,titulo,message from updates_message where usuario='"+p.get_PessoaUsuario()+"' and messagem_lida='N'";
@@ -1050,12 +1092,13 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("");
 						}
+						cm.fecharConexao("opt 21 - opServlet");
 					}else if(opt.equals("22")){
 						param1=req.getParameter("id_msg");
 						query="UPDATE updates_message set messagem_lida='Y' where id_message='"+param1+"' and usuario='"+p.get_PessoaUsuario()+"'";
 						conn.Update_simples(query);
 							
-						
+						cm.fecharConexao("opt 22 - opServlet");
 					}else if(opt.equals("23")){
 						String cor="";
 						String problema="ok";
@@ -1142,7 +1185,7 @@ public class Op_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
-						
+							cm.fecharConexao("opt 23 - opServlet");
 					}else if(opt.equals("24")){
 						
 						query="select SQL_NO_CACHE reg_distancia,now() as agora from expediente where now()=now()";
@@ -1155,6 +1198,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(rs.getString("reg_distancia"));
 						}
+						cm.fecharConexao("opt 24 - opServlet");
 					}else if(opt.equals("25")){
 						param1=req.getParameter("data");
 						String mensagem="";
@@ -1232,6 +1276,7 @@ public class Op_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(mensagem);
+						cm.fecharConexao("opt 25 - opServlet");
 					}else if(opt.equals("26")){
 						param1=req.getParameter("entrada");
 						param2=req.getParameter("saida");
@@ -1262,11 +1307,13 @@ public class Op_Servlet extends HttpServlet {
 							out.print("Ajuste Solicitado com Sucesso. Aguarde aprovação");
 						}
 						}
+						cm.fecharConexao("opt 26 - opServlet");
 					}else if(opt.equals("27")){
 						resp.setContentType("application/text");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Ativo");
+						cm.fecharConexao("opt 27 - opServlet");
 					}else if(opt.equals("28")){
 						String tipo="";
 						String resultado="";
@@ -1342,7 +1389,7 @@ public class Op_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(resultado);
-					
+						cm.fecharConexao("opt 28 - opServlet");
 					}else if(opt.equals("29")){
 						param1=req.getParameter("nome");
 						param2=req.getParameter("id_");
@@ -1376,7 +1423,7 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Erro na solicitação do novo site.");
 						}
-					}
+					}cm.fecharConexao("opt 29 - opServlet");
 						}else if(opt.equals("30")){
 							param1=req.getParameter("latitudemobile");
 							param2=req.getParameter("longitudemobile");
@@ -1399,31 +1446,52 @@ public class Op_Servlet extends HttpServlet {
     						document.append("GEO", geo);
     						cm.InserirSimpels("Localiza_Usuarios", document);
     						
-							
+    						cm.fecharConexao("opt 30 - opServlet");
 						}else if(opt.equals("31")){
 							System.out.println("buscando quantidade atividades para "+p.get_PessoaUsuario());
-							query="";
-							query="select SQL_NO_CACHE count(responsavel) from rollout where tipo_campo='Milestone' and responsavel='"+p.get_PessoaUsuario()+"' and dt_fim in ('','01/01/1800') ";
-							rs=conn.Consulta(query);
+							Long qtde_atividades;
+							qtde_atividades=(long) 0;
+							Bson filtro;
+							List<Bson> filtros = new ArrayList<Bson>();
+							
+							rs=conn.Consulta("select field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
 							if(rs.next()) {
+								//System.out.println("Achou milestones");
+								rs.beforeFirst();
+								while(rs.next()) {
+									filtros = new ArrayList<Bson>();
+									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+									filtros.add(filtro);
+									filtro= Filters.elemMatch("Milestone", Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario()));
+									filtros.add(filtro);
+									qtde_atividades=qtde_atividades+cm.ConsultaCountComplexa("rollout", filtros);
+								}
 								resp.setContentType("application/text");  
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
-								out.print(rs.getInt(1));
+								out.print(qtde_atividades);
 							}else {
 								resp.setContentType("application/text");  
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
 								out.print(0);
 							}
+							
+							
+							
+							cm.fecharConexao("opt 31 - opServlet");
 						}else if(opt.equals("32")){
 							query="";
-							String imagem_status;
+							String dstart="";
+							String dfim="";
+							String imagem_status= "notstarted.png";
 							String bt_texto="";
 							String status_bt="";
 							Bson filtro;
 							Document linha_rollout=new Document();
+							Document milestone=new Document();
 							List<Bson> lista_filtro = new ArrayList<Bson>();
+							List<Document> milestones = new ArrayList<Document>();
 							rs=conn.Consulta("select field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
 							if(rs.next()) {
 								rs.beforeFirst();
@@ -1439,9 +1507,41 @@ public class Op_Servlet extends HttpServlet {
 									if(resultado.hasNext()) {
 										while(resultado.hasNext()) {
 											linha_rollout=resultado.next();
+											milestones = (List<Document>) linha_rollout.get("Milestone");
+											for(int indice=0;indice<milestones.size();indice++) {
+												milestone=milestones.get(indice);
+												if(milestone.getString("Milestone").equals(rs.getString(1))) {
+													if(milestone.get("sdate_pre_"+rs.getString(1))!=null && !milestone.get("sdate_pre_"+rs.getString(1)).equals("")){
+														dstart=f2.format(milestone.getDate("sdate_pre_"+rs.getString(1)));
+													}else {
+														dstart="";
+													}
+													if(milestone.get("edate_pre_"+rs.getString(1))!=null && !milestone.get("edate_pre_"+rs.getString(1)).equals("")){
+														dfim=f2.format(milestone.getDate("edate_pre_"+rs.getString(1)));
+													}else {
+														dfim="";
+													}
+													if(milestone.get("status_"+rs.getString(1)).equals("Finalizada")) {
+					    								imagem_status="finished.png";
+					    							}else if(milestone.get("status_"+rs.getString(1)).equals("parada")) {
+					    								imagem_status="stopped.png";
+					    								status_bt="true";
+					    								bt_texto="Continuar";
+					    							}else if(milestone.get("status_"+rs.getString(1)).equals("iniciada")) {
+					    								imagem_status="started.png";
+					    								bt_texto="Parar";
+					    								status_bt="false";
+					    							}else {
+					    								imagem_status="notstarted.png";
+					    								bt_texto="Iniciar";
+					    								status_bt="true";
+					    							}
+													indice=999;
+												}
+											}
 											dados_tabela=dados_tabela+"<ons-card >\n"+
-												      "<div class='title' style='display:block'>"+linha_rollout.getString("Site ID")+"<div style='float:right'><img src='img/finished.png'></div></div>\n"+
-												      "<div class=\"content\"><div>Planejamento:"+linha_rollout.get("Milestone",ArrayList.class).getClass()+" - "+ linha_rollout.getString("Site ID")+"</div><div>Site:teste</div><hr><br>"
+												      "<div class='title' style='display:block'>"+milestone.getString("Milestone")+"<div style='float:right'><img src='img/"+imagem_status+"'></div></div>\n"+
+												      "<div class=\"content\"><div>Planejamento:"+dstart+" - "+ dfim+"</div><div>Site:"+linha_rollout.getString("Site ID")+"</div><hr><br>"
 												      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"  onclick=\"reg_bySite('"+linha_rollout.getString("Site ID")+"','lat','long','Site','"+p.getEmpresaObj().getEmpresa_id()+"')\"></i></section></div>"+		
 												     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
 												    "</ons-card>\n";
@@ -1490,7 +1590,7 @@ public class Op_Servlet extends HttpServlet {
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
 								out.print(dados_tabela);
-							
+								cm.fecharConexao("opt 32 - opServlet");
 						}else if(opt.equals("33")){
 							
 							param1=req.getParameter("recid");
@@ -1565,6 +1665,7 @@ public class Op_Servlet extends HttpServlet {
 								PrintWriter out = resp.getWriter();
 								out.print("Tarefa atualizada com Sucesso!");
 							}
+							cm.fecharConexao("opt 33 - opServlet");
 						}else if(opt.equals("34")){
 							System.out.println("Salvando foto de perfil");
 							
@@ -1595,7 +1696,7 @@ public class Op_Servlet extends HttpServlet {
 								}
 							
 							
-							
+							cm.fecharConexao("opt 34 - opServlet");
 						}else if(opt.equals("35")){
 							System.out.println("Carregando foto de perfil de "+p.get_PessoaUsuario());
 							ServletOutputStream out = resp.getOutputStream();
@@ -1616,6 +1717,7 @@ public class Op_Servlet extends HttpServlet {
 								System.out.println(" foto carregada");
 								
 							}
+							cm.fecharConexao("opt 35 - opServlet");
 						}else if(opt.equals("36")){
 							System.out.println("Buscando lista de Aprovacoes");
 							param1=req.getParameter("usuario");
@@ -1692,6 +1794,7 @@ public class Op_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
+							cm.fecharConexao("opt 36 - opServlet");
 						}else if(opt.equals("37")){
 							param1=req.getParameter("tipo");
 							if(param1.equals("ajustePonto")) {
@@ -1769,7 +1872,7 @@ public class Op_Servlet extends HttpServlet {
 										out.print(dados_tabela);
 									}
 									}
-							}
+							}cm.fecharConexao("opt 37 - opServlet");
 						}else if(opt.equals("38")){
 							System.out.println("iniciando reprovação");
 							param1=req.getParameter("usuario");
@@ -1803,6 +1906,7 @@ public class Op_Servlet extends HttpServlet {
 									out.print("Requisição Reprovada com Sucesso!");
 								}
 							}
+							cm.fecharConexao("opt 38 - opServlet");
 						}else if(opt.equals("39")){
 							System.out.println("iniciando reprovação");
 							param1=req.getParameter("usuario");
@@ -1874,7 +1978,7 @@ public class Op_Servlet extends HttpServlet {
 								
 							}
 						}
-					
+							cm.fecharConexao("opt 39 - opServlet");
 			}else if(opt.equals("40")){
 				param1=req.getParameter("log");
 				Semail email=new Semail();

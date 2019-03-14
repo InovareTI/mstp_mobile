@@ -7,7 +7,7 @@ function atualiza_rollout(recid,milestone,status,siteid){
                   "status":status,
                   "siteid":siteid
                           },		  
-                  url: "http://192.168.0.22:8080/mstp_mobile/Op_Servlet",	  
+                  url: "http://172.20.10.10:8080/mstp_mobile/Op_Servlet",	  
                   //url: "./POControl_Servlet""
                   cache: false,
                   dataType: "text",
@@ -24,7 +24,7 @@ function carrega_minhas_atividades(){
 	                  type: "POST",
 	                  data: {"opt":32,
 	                  "_":timestamp},		  
-	                  url: "http://192.168.0.22:8080/mstp_mobile/Op_Servlet",	  
+	                  url: "http://172.20.10.10:8080/mstp_mobile/Op_Servlet",	  
 	                  //url: "./POControl_Servlet""
 	                  cache: false,
 	                  dataType: "text",

@@ -7,7 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time;
+
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -22,18 +22,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import Classes.Conexao;
-import Classes.ConexaoMongo;
-import Classes.MercadoPago;
-import Classes.Pessoa;
 
+
+import Classes.Conexao;
+
+import Classes.Pessoa;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 /**
  * Servlet implementation class Lg_OdontoFlow
  */
 @WebServlet("/loginmstp_mobile")
 public class loginmstp_mobile extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
+	static Logger root = (Logger) LoggerFactory
+	        .getLogger(Logger.ROOT_LOGGER_NAME);
+	static {
+	    root.setLevel(Level.OFF);
+	}
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -67,8 +76,10 @@ public class loginmstp_mobile extends HttpServlet {
 	
 	public void login(HttpServletRequest req, HttpServletResponse resp)throws ServletException, IOException{
 		
+		
+		
 		Conexao con = new Conexao();
-		ConexaoMongo cm = new ConexaoMongo();
+		//ConexaoMongo cm = new ConexaoMongo();
 		String dados;
         dados="";
         String last_login_type="";
@@ -123,7 +134,7 @@ public class loginmstp_mobile extends HttpServlet {
         		if(rs.getString("VALIDADO").equals("Y")) {
         			if(rs.getString("HASH").equals(retornaSenha)) {
                 session.setAttribute("conexao",con);
-                session.setAttribute("conexaoMongo",cm);
+                //session.setAttribute("conexaoMongo",cm);
                 Pessoa p=new Pessoa();
                 p.set_PessoaUsuario(rs.getString("id_usuario"));
                 p.setEmpresa(rs.getString("empresa"));
@@ -209,7 +220,7 @@ public class loginmstp_mobile extends HttpServlet {
            			 rs.close();
                     rs=null;
                     con.fecharConexao();
-                    cm.fecharConexao("Servlet de Login, linha 212");
+                    //cm.fecharConexao("Servlet de Login, linha 212");
            			resp.setContentType("application/html");  
        				resp.setCharacterEncoding("UTF-8"); 
        				PrintWriter out = resp.getWriter();
@@ -221,7 +232,7 @@ public class loginmstp_mobile extends HttpServlet {
         			 rs.close();
                  rs=null;
                  con.fecharConexao();
-                 cm.fecharConexao("Servlet de Login, linha 224");
+                // cm.fecharConexao("Servlet de Login, linha 224");
         			resp.setContentType("application/html");  
     				resp.setCharacterEncoding("UTF-8"); 
     				PrintWriter out = resp.getWriter();
@@ -233,7 +244,7 @@ public class loginmstp_mobile extends HttpServlet {
 	        
 		} catch (NoSuchAlgorithmException e) {
 			con.fecharConexao();
-			cm.fecharConexao("Servlet de Login, linha 236");
+			//cm.fecharConexao("Servlet de Login, linha 236");
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  catch (SQLException sqle) {
