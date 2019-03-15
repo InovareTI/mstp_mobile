@@ -22,16 +22,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-
+import org.slf4j.LoggerFactory;
 
 import Classes.Conexao;
 
 import Classes.Pessoa;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import org.slf4j.LoggerFactory;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
+
+
 /**
  * Servlet implementation class Lg_OdontoFlow
  */

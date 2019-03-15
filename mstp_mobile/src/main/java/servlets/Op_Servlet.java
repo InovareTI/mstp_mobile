@@ -1462,7 +1462,7 @@ public class Op_Servlet extends HttpServlet {
 									filtros = new ArrayList<Bson>();
 									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
 									filtros.add(filtro);
-									filtro= Filters.elemMatch("Milestone", Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario()));
+									filtro= Filters.elemMatch("Milestone", Filters.and(Filters.eq("edate_"+rs.getString(1),""),Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario())));
 									filtros.add(filtro);
 									qtde_atividades=qtde_atividades+cm.ConsultaCountComplexa("rollout", filtros);
 								}
@@ -1483,14 +1483,21 @@ public class Op_Servlet extends HttpServlet {
 						}else if(opt.equals("32")){
 							query="";
 							String dstart="";
+							String start="";
 							String dfim="";
+							String comentarios="";
+							String duracao= "";
+							String lat="";
+							String lng="";
 							String imagem_status= "notstarted.png";
 							String bt_texto="";
-							String status_bt="";
+							
 							Bson filtro;
 							Document linha_rollout=new Document();
 							Document milestone=new Document();
+							Document site=new Document();
 							List<Bson> lista_filtro = new ArrayList<Bson>();
+							List<Bson> lista_filtro_site = new ArrayList<Bson>();
 							List<Document> milestones = new ArrayList<Document>();
 							rs=conn.Consulta("select field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
 							if(rs.next()) {
@@ -1498,19 +1505,53 @@ public class Op_Servlet extends HttpServlet {
 								while(rs.next()) {
 									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
 									lista_filtro.add(filtro);
-									filtro= Filters.elemMatch("Milestone", Filters.eq("edate_"+rs.getString(1),""));
+									filtro= Filters.elemMatch("Milestone", Filters.and(Filters.eq("edate_"+rs.getString(1),""),Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario())));
 									lista_filtro.add(filtro);
-									filtro= Filters.elemMatch("Milestone", Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario()));
-									lista_filtro.add(filtro);
+									FindIterable<Document> findIterable2;
 									FindIterable<Document> findIterable = cm.ConsultaCollectioncomFiltrosLista("rollout", lista_filtro);
 									MongoCursor<Document> resultado = findIterable.iterator();
 									if(resultado.hasNext()) {
 										while(resultado.hasNext()) {
 											linha_rollout=resultado.next();
+											lista_filtro_site.clear();
+											filtro=Filters.and(Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id()),Filters.eq("site_id",linha_rollout.getString("Site ID")));
+											lista_filtro_site.add(filtro);
+											findIterable2=cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro_site);
+											MongoCursor<Document> resultado2 = findIterable2.iterator();
+											if(resultado2.hasNext()) {
+												System.out.println("achou site id:"+linha_rollout.getString("Site ID"));
+												site=resultado2.next();
+												if(site.isEmpty()) {
+													lat="0.0";
+													lng="0.0";
+												}else {
+													lat=site.getString("site_latitude");
+													lng=site.getString("site_longitude");
+													System.out.println("Coordenadas:"+lat+","+lng);
+												}
+											}else {
+												lat="0.0";
+												lng="0.0";
+											}
 											milestones = (List<Document>) linha_rollout.get("Milestone");
 											for(int indice=0;indice<milestones.size();indice++) {
 												milestone=milestones.get(indice);
 												if(milestone.getString("Milestone").equals(rs.getString(1))) {
+													if(milestone.get("sdate_"+rs.getString(1))!=null && !milestone.get("sdate_"+rs.getString(1)).equals("")){
+														start=f2.format(milestone.getDate("sdate_"+rs.getString(1)));
+													}else {
+														start="Não Iniciado";
+													}
+													if(milestone.get("udate_"+rs.getString(1))!=null && !milestone.get("udate_"+rs.getString(1)).equals("")){
+														comentarios=milestone.getString("udate_"+rs.getString(1));
+													}else {
+														comentarios="Sem Anaotações";
+													}
+													if(milestone.get("duracao_"+rs.getString(1))!=null && !milestone.get("duracao_"+rs.getString(1)).equals("")){
+														duracao=milestone.get("duracao_"+rs.getString(1)).toString();
+													}else {
+														duracao="";
+													}
 													if(milestone.get("sdate_pre_"+rs.getString(1))!=null && !milestone.get("sdate_pre_"+rs.getString(1)).equals("")){
 														dstart=f2.format(milestone.getDate("sdate_pre_"+rs.getString(1)));
 													}else {
@@ -1525,26 +1566,26 @@ public class Op_Servlet extends HttpServlet {
 					    								imagem_status="finished.png";
 					    							}else if(milestone.get("status_"+rs.getString(1)).equals("parada")) {
 					    								imagem_status="stopped.png";
-					    								status_bt="true";
+					    								
 					    								bt_texto="Continuar";
 					    							}else if(milestone.get("status_"+rs.getString(1)).equals("iniciada")) {
 					    								imagem_status="started.png";
 					    								bt_texto="Parar";
-					    								status_bt="false";
+					    								
 					    							}else {
 					    								imagem_status="notstarted.png";
 					    								bt_texto="Iniciar";
-					    								status_bt="true";
+					    								
 					    							}
 													indice=999;
 												}
 											}
 											dados_tabela=dados_tabela+"<ons-card >\n"+
 												      "<div class='title' style='display:block'>"+milestone.getString("Milestone")+"<div style='float:right'><img src='img/"+imagem_status+"'></div></div>\n"+
-												      "<div class=\"content\"><div>Planejamento:"+dstart+" - "+ dfim+"</div><div>Site:"+linha_rollout.getString("Site ID")+"</div><hr><br>"
-												      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"  onclick=\"reg_bySite('"+linha_rollout.getString("Site ID")+"','lat','long','Site','"+p.getEmpresaObj().getEmpresa_id()+"')\"></i></section></div>"+		
+												      "<div class=\"content\"><div>Site:"+linha_rollout.getString("Site ID")+"</div><div>Planejamento:"+dstart+" - "+ dfim+"</div><div>Inicio Real: "+start+" - Duração(D): "+duracao+"</div><div>Comentários: "+comentarios+"</div><hr><br>"
+												      +"<section style='padding:5px'><table><tr><td style='padding:2px'><ons-button style=\"background:gray;border-radius: 10%;display:table-cell;margin: auto;\"><i class=\"far fa-hand-pointer\"  onclick=\"reg_bySite('"+linha_rollout.getString("Site ID")+"','"+lat+"','"+lng+"','Site','"+p.getEmpresaObj().getEmpresa_id()+"')\"></i></ons-button></td><td style='padding:2px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:25px;margin: auto;\" onclick=\"atualiza_rollout("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','"+milestone.get("status_"+rs.getString(1))+"','"+linha_rollout.getString("Site ID")+"')\">"+bt_texto+"</ons-button></td><td style='padding:2px'><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:25px;margin: auto;\" onclick=\"atualiza_rollout("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','Finalizada','"+linha_rollout.getString("Site ID")+"')\">Completar</ons-button></td></tr></table></section></div>"+		
 												     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
-												    "</ons-card>\n";
+												    "\n</ons-card>\n";
 										}
 									}
 								lista_filtro.clear();
@@ -1597,14 +1638,25 @@ public class Op_Servlet extends HttpServlet {
 							param2=req.getParameter("milestone");
 							param3=req.getParameter("status");
 							param4=req.getParameter("siteid");
-							System.out.println(param1);
-							System.out.println(param2);
-							System.out.println(param3);
+							System.out.println("param1:"+param1);
+							System.out.println("param2:"+param2);
+							System.out.println("param3:"+param3);
+							System.out.println("param4:"+param4);
+							Document filtro = new Document();
+							Document update=new Document();
+							Document updates=new Document();
 							
 							Document historico = new Document();
 							query="";
 							if(param3.equals("Finalizada")) {
-								query="update rollout set dt_fim='"+f2.format(time)+"',status_atividade='Finalizada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
+								filtro.append("recid", Integer.parseInt(param1));
+								filtro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+								filtro.append("Milestone.Milestone", param2);
+								update.append("Milestone.$.edate_"+param2, checa_formato_data(f2.format(time)));
+								update.append("Milestone.$.status_"+param2, "Finalizada");
+								updates.append("$set", update);
+								cm.AtualizaUm("rollout", filtro, updates);
+								//query="update rollout set dt_fim='"+f2.format(time)+"',status_atividade='Finalizada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
 	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
@@ -1617,8 +1669,32 @@ public class Op_Servlet extends HttpServlet {
 	    				        historico.append("update_time", time);
 	    				        cm.InserirSimpels("rollout_history", historico);
 	    						historico.clear();
-							}else if(param3.equals("nao iniciada")){
-								query="update rollout set dt_inicio='"+f2.format(time)+"',status_atividade='iniciada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
+	    						historico.append("recid" , param1);
+	    				        historico.append("SiteID" , param4);
+	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
+	    				        historico.append("TipoCampo" , "Milestone");
+	    				        historico.append("Milestone" , param2);
+	    				        historico.append("Campo","Status");
+	    				        historico.append("Valor Anterior" , "iniciada");
+	    				        historico.append("Novo Valor" , "Finalizada");
+	    				        historico.append("update_by", p.get_PessoaUsuario());
+	    				        historico.append("update_time", time);
+	    				        cm.InserirSimpels("rollout_history", historico);
+	    						historico.clear();
+							}else if(param3.equals("não iniciada")){
+								//System.out.println("entrou no nao iniciada");
+								filtro.append("recid", Integer.parseInt(param1));
+								filtro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+								filtro.append("Milestone.Milestone", param2);
+								update.append("Milestone.$.sdate_"+param2, checa_formato_data(f2.format(time)));
+								update.append("Milestone.$.status_"+param2, "iniciada");
+								update.append("Milestone.$.duracao_"+param2, 1);
+								update.append("update_by", p.get_PessoaUsuario());
+								update.append("update_time", checa_formato_data(f2.format(d.getTime())));
+								updates.append("$set", update);
+								
+								cm.AtualizaUm("rollout", filtro, updates);
+								//query="update rollout set dt_inicio='"+f2.format(time)+"',status_atividade='iniciada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
 	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
@@ -1631,8 +1707,27 @@ public class Op_Servlet extends HttpServlet {
 	    				        historico.append("update_time", time);
 	    				        cm.InserirSimpels("rollout_history", historico);
 	    						historico.clear();
+	    						historico.append("recid" , param1);
+	    				        historico.append("SiteID" , param4);
+	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
+	    				        historico.append("TipoCampo" , "Milestone");
+	    				        historico.append("Milestone" , param2);
+	    				        historico.append("Campo","Status");
+	    				        historico.append("Valor Anterior" , "não iniciada");
+	    				        historico.append("Novo Valor" , "iniciada");
+	    				        historico.append("update_by", p.get_PessoaUsuario());
+	    				        historico.append("update_time", time);
+	    				        cm.InserirSimpels("rollout_history", historico);
+	    						historico.clear();
 							}else if(param3.equals("iniciada")) {
-								query="update rollout set status_atividade='parada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
+								filtro.append("recid", Integer.parseInt(param1));
+								filtro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+								filtro.append("Milestone.Milestone", param2);
+								//update.append("Milestone.$.sdate_"+param2, checa_formato_data(f2.format(time)));
+								update.append("Milestone.$.status_"+param2, "parada");
+								updates.append("$set", update);
+								cm.AtualizaUm("rollout", filtro, updates);
+								//query="update rollout set status_atividade='parada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
 	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
@@ -1645,7 +1740,14 @@ public class Op_Servlet extends HttpServlet {
 	    				        historico.append("update_time", time);
 	    				        cm.InserirSimpels("rollout_history", historico);
 							}else if(param3.equals("parada")) {
-								query="update rollout set status_atividade='iniciada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
+								filtro.append("recid", Integer.parseInt(param1));
+								filtro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+								filtro.append("Milestone.Milestone", param2);
+								//update.append("Milestone.$.sdate_"+param2, checa_formato_data(f2.format(time)));
+								update.append("Milestone.$.status_"+param2, "iniciada");
+								updates.append("$set", update);
+								cm.AtualizaUm("rollout", filtro, updates);
+								//query="update rollout set status_atividade='iniciada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
 	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
@@ -1658,13 +1760,13 @@ public class Op_Servlet extends HttpServlet {
 	    				        historico.append("update_time", time);
 	    				        cm.InserirSimpels("rollout_history", historico);
 							}
-							System.out.println(query);
-							if(conn.Update_simples(query)) {
+							//System.out.println(query);
+							//if(conn.Update_simples(query)) {
 								resp.setContentType("application/html");  
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
 								out.print("Tarefa atualizada com Sucesso!");
-							}
+							//}
 							cm.fecharConexao("opt 33 - opServlet");
 						}else if(opt.equals("34")){
 							System.out.println("Salvando foto de perfil");
