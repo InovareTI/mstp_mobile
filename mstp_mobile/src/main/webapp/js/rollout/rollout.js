@@ -14,7 +14,7 @@ function atualiza_rollout(recid,milestone,status,siteid){
                   "status":status,
                   "siteid":siteid
                           },		  
-                  url: "http://172.20.10.3:8080/mstp_mobile/Op_Servlet",	  
+                  url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
                   //url: "./POControl_Servlet""
                   cache: false,
                   dataType: "text",
@@ -33,7 +33,7 @@ function carrega_minhas_atividades(){
 	                  type: "POST",
 	                  data: {"opt":32,
 	                  "_":timestamp},		  
-	                  url: "http://172.20.10.3:8080/mstp_mobile/Op_Servlet",	  
+	                  url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
 	                  //url: "./POControl_Servlet""
 	                  cache: false,
 	                  dataType: "text",
@@ -50,7 +50,7 @@ function carrega_atividades_quantidade_label(){
 			  type: "POST",
 			  data: {"opt":31,
 	             "_":timestamp},		  
-			  url: "http://172.20.10.3:8080/mstp_mobile/Op_Servlet",	  
+			  url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
 			  //url: "./POControl_Servlet""
 			  cache: false,
 			  dataType: "text",
