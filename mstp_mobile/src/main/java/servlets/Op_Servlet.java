@@ -1452,13 +1452,14 @@ public class Op_Servlet extends HttpServlet {
     						
     						cm.fecharConexao("opt 30 - opServlet");
 						}else if(opt.equals("31")){
-							System.out.println("buscando quantidade atividades para "+p.get_PessoaUsuario());
+							System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" buscando quantidade de atividades");
+							//System.out.println("buscando quantidade atividades para "+p.get_PessoaUsuario())
 							Long qtde_atividades;
 							qtde_atividades=(long) 0;
 							Bson filtro;
 							List<Bson> filtros = new ArrayList<Bson>();
 							
-							rs=conn.Consulta("select field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
+							rs=conn.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
 							if(rs.next()) {
 								//System.out.println("Achou milestones");
 								rs.beforeFirst();
@@ -1503,7 +1504,7 @@ public class Op_Servlet extends HttpServlet {
 							List<Bson> lista_filtro = new ArrayList<Bson>();
 							List<Bson> lista_filtro_site = new ArrayList<Bson>();
 							List<Document> milestones = new ArrayList<Document>();
-							rs=conn.Consulta("select field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
+							rs=conn.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
 							if(rs.next()) {
 								rs.beforeFirst();
 								while(rs.next()) {
