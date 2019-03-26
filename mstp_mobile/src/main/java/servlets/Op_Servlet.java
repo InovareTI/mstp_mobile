@@ -2048,8 +2048,10 @@ public class Op_Servlet extends HttpServlet {
 												insere_regitro(p,rs.getString("usuario"),"Licença Médica",conn,"0","0",rs.getString("other2")+" 00:00:00","0","","Licença Médica, - , - ");
 												
 											}else {
-												insere_regitro(p,rs.getString("usuario"),"Entrada",conn,"0","0",rs.getString("dt_entrada"),"0",rs.getString("dt_entrada"),"PontoAjustado,Spazio RIO,SPAZIO");
-												insere_regitro(p,rs.getString("usuario"),"Saída",conn,"0","0",rs.getString("dt_saida"),"0",rs.getString("dt_saida"),"PontoAjustado,Spazio RIO,SPAZIO");
+												insere_regitro(p,rs.getString("usuario"),"Entrada",conn,"0","0",rs.getString("dt_entrada"),"0",rs.getString("dt_entrada"),"PontoAjustado,"+p.getEmpresaObj().getNome()+","+p.getEmpresaObj().getNome());
+												insere_regitro(p,rs.getString("usuario"),"Saída",conn,"0","0",rs.getString("dt_saida"),"0",rs.getString("dt_saida"),"PontoAjustado,"+p.getEmpresaObj().getNome()+","+p.getEmpresaObj().getNome());
+												insere_regitro(p,rs.getString("usuario"),"Inicio_intervalo",conn,"0","0",rs.getString("dt_ini_inter"),"0",rs.getString("dt_ini_inter"),"PontoAjustado,"+p.getEmpresaObj().getNome()+","+p.getEmpresaObj().getNome());
+												insere_regitro(p,rs.getString("usuario"),"Fim_intervalo",conn,"0","0",rs.getString("dt_fim_inter"),"0",rs.getString("dt_fim_inter"),"PontoAjustado,"+p.getEmpresaObj().getNome()+","+p.getEmpresaObj().getNome());
 											}
 												//rs2=conn.Consulta("select * from usuarios where id_usuario='"+rs.getString("usuario")+"'");
 												//if(rs2.next()) {
@@ -2148,9 +2150,12 @@ public class Op_Servlet extends HttpServlet {
 				param3=timestam;
 				param4=distancia;
 				param5=datetime;
-				
+				Document registro=new Document();
+				Document geo = new Document();
+				Document geometry = new Document();
+				Document properties = new Document();
 				param7=Localidade;
-				
+				ConexaoMongo cm = new ConexaoMongo();
 				array_string_aux=Localidade.split(",");
 				
 				try {
@@ -2164,11 +2169,43 @@ public class Op_Servlet extends HttpServlet {
 				date_sql = new java.sql.Date(d.getTime().getTime());
 				//System.out.println(param5.substring(param5.indexOf(" ")+1));
 				insere="";
-					insere="INSERT INTO registros (id_sistema,empresa,usuario,latitude,longitude,data_dia,distancia,datetime_mobile,datetime_servlet,hora,minutos,tipo_registro,local_registro,tipo_local_registro,site_operadora_registro,mes) VALUES ('1','"+p.getEmpresaObj().getEmpresa_id()+"','"+usuario+"','"+param1+"','"+param2+"','"+f2.format(d.getTime())+"',"+param4+",'"+param5+"','"+date_sql.toString()+" "+param5.substring(param5.indexOf(" ")+1)+"',"+aux_hora+","+aux_min+",'"+tipo_registro+"','"+array_string_aux[0]+"','"+array_string_aux[1]+"','"+array_string_aux[2]+"',"+(d.get(Calendar.MONTH)+1)+")";
+					insere="INSERT INTO registros (id_sistema,empresa,usuario,latitude,longitude,data_dia,distancia,datetime_mobile,datetime_servlet,hora,minutos,tipo_registro,local_registro,tipo_local_registro,site_operadora_registro,mes) "
+							+ "VALUES ('1','"+p.getEmpresaObj().getEmpresa_id()+"','"+usuario+"','"+param1+"','"+param2+"','"+f2.format(d.getTime())+"',"+param4+",'"+param5+"','"+date_sql.toString()+" "+param5.substring(param5.indexOf(" ")+1)+"',"+aux_hora+","+aux_min+",'"+tipo_registro+"','"+array_string_aux[0]+"','"+array_string_aux[1]+"','"+array_string_aux[2]+"',"+(d.get(Calendar.MONTH)+1)+")";
 					//System.out.println(insere);
 					if(conn.Inserir_simples(insere)){
 			    		System.out.println("Registro Cadastrado");
-			    			
+			    		geo.append("type", "Feature");
+						geometry.append("type", "Point");
+						geometry.append("coordinates", verfica_coordenadas(param1,param2));
+						geo.append("geometry",geometry);
+						properties.append("Usuario", p.get_PessoaUsuario());
+						properties.append("Local_Registro", array_string_aux[1]);
+						properties.append("Tipo_local", array_string_aux[0]);
+						properties.append("Hora_Registro", f3.format(d.getTime()));
+						properties.append("Distancia_local", param4);
+						properties.append("Coordenadas", param1+","+param2);
+						geo.append("properties", properties);
+    					registro.append("Usuario", p.get_PessoaUsuario());
+    					registro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+    					registro.append("data_dia", d.getTime());
+    					registro.append("data_dia_string", f2.format(d.getTime()));
+    					registro.append("datetime_mobile", param5);
+    					//System.out.println("hora formartada:"+ checa_formato_data_e_hora(f3.format(mobile_time.getTime())));
+    					registro.append("datetime_mobile_data", checa_formato_data_e_hora(f3.format(d.getTime())));
+    					registro.append("datetime_servlet", date_sql);
+    					registro.append("hora", d.get(Calendar.HOUR_OF_DAY));
+    					registro.append("minuto", d.get(Calendar.MINUTE));
+    					registro.append("dia", d.get(Calendar.DAY_OF_MONTH));
+    					registro.append("mes", (d.get(Calendar.MONTH)+1));
+    					registro.append("ano", d.get(Calendar.YEAR));
+    					registro.append("tipo_registro", tipo_registro);
+    					registro.append("local_registro", array_string_aux[0]);
+    					registro.append("distancia", param4);
+    					registro.append("tipo_local_registro", array_string_aux[1]);
+    					registro.append("site_operadora_registro", array_string_aux[2]);
+    					registro.append("timeStamp_mobile", param3);
+    					registro.append("GEO", geo);
+			    		cm.InserirSimpels("Registros", registro);	
 					}
 					if(tipo_registro.equals("Saída")) {
 						format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -2301,12 +2338,16 @@ public class Op_Servlet extends HttpServlet {
 							conn.Inserir_simples(insere);
 						
 						}
-						}}}
+						}}
+				cm.fecharConexao("funcao de inserir registro");	
+				}
 						 catch (ParseException e) {
 						    e.printStackTrace();
+						    cm.fecharConexao("funcao de inserir registro");	
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
+							cm.fecharConexao("funcao de inserir registro");	
 						} 
 					}		
 	 public Date checa_formato_data(String data) {
