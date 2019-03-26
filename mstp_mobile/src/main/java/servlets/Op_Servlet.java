@@ -173,7 +173,8 @@ public class Op_Servlet extends HttpServlet {
 			opt=req.getParameter("opt");
 			
 			try {
-				System.out.println(p.get_PessoaUsuario()+" - Chegou no servlet de Operações do MSTP Mobile - "+f3.format(time)+" Opção:"+opt);
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de operações opt -  "+ opt);
+				//System.out.println(p.get_PessoaUsuario()+" - Chegou no servlet de Operações do MSTP Mobile - "+f3.format(time)+" Opção:"+opt);
 				if(opt.equals("1")) {
 					System.out.println("Inserindo Registro - "+f3.format(time));
 					
@@ -242,9 +243,12 @@ public class Op_Servlet extends HttpServlet {
 							geometry.append("type", "Point");
 							geometry.append("coordinates", verfica_coordenadas(param1,param2));
 							geo.append("geometry",geometry);
+							properties.append("Usuario", p.get_PessoaUsuario());
 							properties.append("Local_Registro", array_string_aux[1]);
+							properties.append("Tipo_local", array_string_aux[0]);
 							properties.append("Hora_Registro", f3.format(mobile_time.getTime()));
 							properties.append("Distancia_local", param4);
+							properties.append("Coordenadas", param1+","+param2);
 							geo.append("properties", properties);
 	    					registro.append("Usuario", p.get_PessoaUsuario());
 	    					registro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
@@ -818,6 +822,7 @@ public class Op_Servlet extends HttpServlet {
 						Document site = new Document();
 						List<Bson> lista_filtro = new ArrayList<Bson>();
 						param2=req.getParameter("operadora");
+						System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" realizando pesquisa de site para  "+ param2);
 						FindIterable<Document> findIterable;
 						if(param2.contains(";")) {
 							
@@ -830,8 +835,8 @@ public class Op_Servlet extends HttpServlet {
 						lista_filtro.add(filtro);
 						filtro = Filters.eq("site_ativo","Y");
 						lista_filtro.add(filtro);
-						System.out.println(aux1[0]);
-						System.out.println(aux1[1]);
+						//System.out.println(aux1[0]);
+						//System.out.println(aux1[1]);
 						if(aux1[0].toUpperCase().equals("VIVO") || aux1[0].toUpperCase().equals("TIM") || aux1[0].toUpperCase().equals("OI") || aux1[0].toUpperCase().equals("CLARO")) {
 							findIterable= cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
 							//query="select * from sites where site_operadora='"+aux1[0]+"' and site_uf='"+aux1[1]+"' and site_ativo='Y'";
@@ -848,7 +853,7 @@ public class Op_Servlet extends HttpServlet {
 							lista_filtro.clear();
 							filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
 							lista_filtro.add(filtro);
-							filtro = Filters.regex("site_id", ".*"+param2+".*");
+							filtro = Filters.regex("site_id", ".*"+param2.toUpperCase()+".*");
 							lista_filtro.add(filtro);
 							findIterable= cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
 							//query="select * from sites where site_id like '%"+param2+"%' and site_ativo='Y'";
@@ -863,11 +868,12 @@ public class Op_Servlet extends HttpServlet {
 							while(resultado.hasNext()) {
 									site = resultado.next();
 									dados_tabela=dados_tabela+"[\""+site.getString("site_id")+"\",\""+site.getString("site_latitude").replace(",", ".")+"\",\""+site.getString("site_longitude").replace(",", ".")+"\",\""+site.getString("site_operadora")+"\",[\""+site.getString("site_id")+"\"]],\n";
+									
 								
 							}
 							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
 							dados_tabela=dados_tabela+"]";
-							//System.out.println("arquivo finalizado");
+							//System.out.println(dados_tabela);
 							resp.setContentType("application/html");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
@@ -889,10 +895,6 @@ public class Op_Servlet extends HttpServlet {
 							//System.out.println("Carregando sites no mapa3");
 							dados_tabela="";
 							dados_tabela=  "[";
-									 
-								      
-								    		
-								        
 							rs.beforeFirst();
 							while (rs.next()) {
 								dados_tabela=dados_tabela+"[[\""+rs.getString("longitude_ponto")+"\"],[\""+rs.getString("latitude_ponto")+"\"]],";
@@ -1438,6 +1440,8 @@ public class Op_Servlet extends HttpServlet {
 							geometry.append("type", "Point");
 							geometry.append("coordinates", Arrays.asList(Double.parseDouble(param2.replaceAll(",", ".")),Double.parseDouble(param1.replaceAll(",", "."))));
 							properties.append("Usuario",p.get_PessoaUsuario());
+    						properties.append("Site",time);
+    						properties.append("Coordenadas",param2+","+param1);
     						properties.append("Data",time);
     						document.append("Empresa", p.getEmpresaObj().getEmpresa_id());
     						geo.append("type", "Feature");
