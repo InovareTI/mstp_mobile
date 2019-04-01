@@ -115,20 +115,14 @@ public class Op_Servlet extends HttpServlet {
 			String param5;
 			String param6;
 			String param7;
-			String param8;
-			String param9;
-			String param10;
-			String param11;
+			
 			String query;
 			String query2 = "";
-			String param12;
-			String param13;
-			String param14;
-			String param15;
+			
 			String aux;
-			int last_id;
+			
 			String array_string_aux[];
-			last_id=0;
+			
 			param1="";
 			query="";
 			param2="";
@@ -137,14 +131,8 @@ public class Op_Servlet extends HttpServlet {
 			param5="";
 			param6="";
 			param7="";
-			param8="";
-			param9="";
-			param10="";
-			param11="";
-			param12="";
-			param13="";
-			param14="";
-			param15="";
+			
+			
 			aux="";
 			insere="";
 			opt="";
@@ -273,7 +261,7 @@ public class Op_Servlet extends HttpServlet {
 				    		cm.InserirSimpels("Registros", registro);
 				    		rs=conn.Consulta("Select * from registros order by id_sistema desc limit 1");
 				    		if(rs.next()){
-				    			last_id=rs.getInt(1);
+				    			
 				    			resp.setContentType("application/html");  
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
@@ -342,7 +330,8 @@ public class Op_Servlet extends HttpServlet {
 		    					}
 							}else if(Double.parseDouble(HH[1])<0){
 								query="SELECT * FROM horas_extras WHERE id_usuario='"+p.get_PessoaUsuario()+"' and DATE_FORMAT(STR_TO_DATE(he_data,'%d/%m/%Y'), '%Y-%m-%d')='"+date_sql.toString()+"' order by he_data desc limit 1";
-		    					rs=conn.Consulta(query);
+								
+								rs=conn.Consulta(query);
 		    					if(HH[3].equals("Sábado") || HH[3].equals("Domingo")) {
 	    							HH_tipo="Horas Extra";
 	    						}else {
@@ -360,156 +349,16 @@ public class Op_Servlet extends HttpServlet {
 		    						conn.Inserir_simples(insere);
 		    					
 		    					}
+		    					
 							}
+							
 							} catch (ParseException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-	    					/*System.out.println("entrou no calculo de horas");
-	    					String dateStart = "";
-	    					String dateStop = "";
-	    					String exp_entrada="";
-	    					String exp_saida="";
-	    					query="SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' order by datetime_servlet asc limit 1";
-	    					rs=conn.Consulta(query);
-	    					if(rs.next()) {
-	    						dateStart=rs.getString("datetime_servlet").substring(0, rs.getString("datetime_servlet").length()-4);
-	    						exp_entrada=rs.getString("datetime_servlet").substring(0, rs.getString("datetime_servlet").length()-12);
-	    						//exp_entrada=exp_entrada+" 08:10:00";
-	    					}*/
-	    					/*
-	    					query="SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Saída' order by datetime_servlet desc limit 1";
-	    					rs=conn.Consulta(query);
-	    					if(rs.next()) {
-	    						dateStop=rs.getString("datetime_servlet").substring(0, rs.getString("datetime_servlet").length()-4);
-	    						exp_saida=rs.getString("datetime_servlet").substring(0, rs.getString("datetime_servlet").length()-12);
-	    						//exp_saida=exp_saida+" 18:30:00";
-	    					}*/
-	    					/*
-	    					query="SELECT entrada,saida FROM expediente";
-	    					rs=conn.Consulta(query);
-	    					if(rs.next()) {
-	    						exp_entrada=exp_entrada+" " + rs.getString(1) +":00";
-	    						exp_saida=exp_saida+" " + rs.getString(2) +":00";
-	    					}*/
-
-	    					// Custom date format
-	    					/*SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");  
-
-	    					Date d1 = null;
-	    					Date d2 = null;
-	    					Date expd1= null;
-	    					Date expd2=null;*/
-	    					//System.out.println("hora inicio:"+dateStart);
-	    					//System.out.println("hora fim:"+dateStop);
-	    					/*try {
-	    						double horas_normais=0.0;
-	    						NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
-	    						DecimalFormat numberFormat = (DecimalFormat)nf;
-	    						numberFormat.applyPattern("#0.00");
-	    						
-	    						double horas_noturnas=0.0;
-	    						double horas_tot=0.0;
-	    						double min_noturnas=0.0;
-	    						double hh_saida;
-	    						double hh_entrada;
-	    					    d1 = format.parse(dateStart);
-	    					    Calendar hora_entrada=Calendar.getInstance();
-	    					    hora_entrada.setTime(d1);
-	    					    //System.out.println("teste fabio: "+hora_entrada.get(Calendar.HOUR_OF_DAY));
-	    					    hh_entrada=hora_entrada.get(Calendar.HOUR_OF_DAY);
-	    					    hh_entrada=hh_entrada + (hora_entrada.get(Calendar.MINUTE) / 60.0);
-	    					    d2 = format.parse(dateStop);
-	    					    Calendar hora_saida=Calendar.getInstance();
-	    					    hora_saida.setTime(d2);
-	    					    hh_saida=hora_saida.get(Calendar.HOUR_OF_DAY);
-	    					    hh_saida=hh_saida + (hora_saida.get(Calendar.MINUTE) / 60.0);
-	    					    horas_tot=hh_saida-hh_entrada;
-	    					    //System.out.println(hora_saida.get(Calendar.MINUTE) - hora_entrada.get(Calendar.MINUTE));
-	    					    //System.out.println((hora_saida.get(Calendar.MINUTE) - hora_entrada.get(Calendar.MINUTE)) / 60.0);
-	    					    //horas_tot=horas_tot+((hora_saida.get(Calendar.MINUTE) - hora_entrada.get(Calendar.MINUTE)) / 60.0);
-	    					    if(horas_tot>10) {
-	    					    if(hh_entrada>=18.5 && hh_saida>=22 ) {
-	    					    	System.out.println("opcao 1");
-	    					    	//System.out.println(horas_tot);
-	    					    	horas_noturnas=horas_noturnas+(hh_saida-22);
-	    					    	min_noturnas=hora_saida.get(Calendar.MINUTE);
-	    					    	horas_noturnas=horas_noturnas+(min_noturnas / 60.0);
-	    					    	horas_normais=horas_tot-horas_noturnas;
-	    					    }else if(hh_entrada<=5 && hh_saida<=5){
-	    					    	System.out.println("opcao 2");
-	    					    	horas_noturnas=hh_saida-hh_entrada;
-	    					    	min_noturnas=hora_saida.get(Calendar.MINUTE)+hora_entrada.get(Calendar.MINUTE);
-	    					    	horas_noturnas=horas_noturnas+(min_noturnas / 60.0);
-	    					    	horas_normais=horas_tot-horas_noturnas;
-	    					    }else if(hh_entrada<=5 && hh_saida>=22){
-	    					    	System.out.println("opcao 3");
-	    					    	horas_tot=horas_tot-10;
-	    					    	horas_noturnas=horas_noturnas + (hh_saida - 22);
-	    					    	horas_noturnas=horas_noturnas + (5 - hh_entrada);
-	    					    	min_noturnas=hora_saida.get(Calendar.MINUTE)+hora_entrada.get(Calendar.MINUTE);
-	    					    	horas_noturnas=horas_noturnas+(min_noturnas / 60.0);
-	    					    	horas_normais=horas_tot-horas_noturnas;
-	    					    }else if(hh_entrada>=18.5){
-	    					    	System.out.println("opcao 4");
-	    					    	//horas_tot=hh_saida-hh_entrada;
-	    					    	if(hh_saida>=22) {
-	    					    		System.out.println("opcao 4.1");
-	    					    		horas_noturnas=horas_noturnas + (hh_saida - 22);
-	    					    		min_noturnas=hora_saida.get(Calendar.MINUTE);
-		    					    	horas_noturnas=horas_noturnas+(min_noturnas / 60.0);
-		    					    	horas_normais=horas_tot-horas_noturnas;
-	    					    	}else {
-	    					    		System.out.println("opcao 4.2");
-	    					    		//System.out.println((hora_saida.get(Calendar.MINUTE) - hora_entrada.get(Calendar.MINUTE)));
-	    					    		horas_normais=horas_tot+((Math.abs(hora_saida.get(Calendar.MINUTE) - hora_entrada.get(Calendar.MINUTE))) / 60.0);
-	    					    	}
-	    					    }else {
-	    					    	System.out.println("opcao 5");
-	    					    	if(hh_saida>=18.5 && hh_saida<=22) {
-	    					    		System.out.println("opcao 5.1");
-	    					    		horas_noturnas=0;
-	    					    		horas_normais=hh_saida-18.5;
-	    					    		min_noturnas=hora_saida.get(Calendar.MINUTE);
-	    					    		horas_normais=horas_normais+(min_noturnas / 60.0);
-	    					    	}
-	    					    }
-	    					    }else {
-	    					    	if(hh_entrada > 8) {
-	    					    		horas_normais=horas_tot - 10.33;
-	    					    		horas_noturnas=0.0;
-	    					    	}else if(hh_saida<18.5) {
-	    					    		horas_normais=horas_tot - 10.33;
-		    					    	horas_noturnas=0.0;
-	    					    	}
-	    					    }
-	    					    System.out.println("Analisando HH para "+p.get_PessoaUsuario());
-	    					    System.out.println("Hora Entrada mais cedo "+f3.format(hora_entrada.getTime()));
-	    					    System.out.println("Hora Entrada maid tardia "+f3.format(hora_saida.getTime()));
-	    					    System.out.println("Total "+numberFormat.format(horas_tot));
-		    					System.out.println("Total de Horas Extras Normais "+numberFormat.format(horas_normais));
-		    					System.out.println("Total de horas noturnas "+numberFormat.format(horas_noturnas));
-	    					if(horas_normais>0 || horas_noturnas>0) {
 	    					
-	    					query="SELECT * FROM horas_extras WHERE id_usuario='"+p.get_PessoaUsuario()+"' and DATE_FORMAT(STR_TO_DATE(he_data,'%d/%m/%Y'), '%Y-%m-%d')='"+date_sql.toString()+"' order by he_data desc limit 1";
-	    					rs=conn.Consulta(query);
-	    					
-	    					
-	    					if(rs.next()) {
-	    						query2="update horas_extras set he_quantidade="+numberFormat.format(horas_normais)+",horas_noturnas="+numberFormat.format(horas_noturnas)+",entrada='"+f3.format(hora_entrada.getTime())+"',saida='"+f3.format(hora_saida.getTime())+"',origen='Automatico - MSTP MOBILE',aprovada='N',compensada='N' where id_usuario='"+p.get_PessoaUsuario()+"' and DATE_FORMAT(STR_TO_DATE(he_data,'%d/%m/%Y'), '%Y-%m-%d')='"+date_sql.toString()+"'";
-	    						conn.Alterar(query2);
-	    					}else {
-	    						insere="";
-	    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(horas_normais)+",'"+f3.format(hora_entrada.getTime())+"','"+f3.format(hora_saida.getTime())+"',"+numberFormat.format(horas_noturnas)+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"')";
-	    						
-	    						conn.Inserir_simples(insere);
-	    					
-	    					}
-	    					}
-	    					} catch (ParseException e) {
-	    					    e.printStackTrace();
-	    					} */
 	    				}
+	    				
 	    				cm.fecharConexao("opt 1 - opServlet");
 				}else if(opt.equals("2")) {
 					param1=req.getParameter("func");
@@ -2135,7 +1984,7 @@ public class Op_Servlet extends HttpServlet {
 	 public void insere_regitro(Pessoa p,String usuario,String tipo_registro, Conexao conn,String lat,String lng,String timestam,String distancia,String datetime,String Localidade) {
 				String query,query2,insere;
 				Locale brasil = new Locale("pt", "BR");
-				String param1,param2,param3,param4,param5,param7;
+				String param1,param2,param3,param4,param5;
 				String array_string_aux[];
 				Calendar d = Calendar.getInstance();
 				Date data = d.getTime();
@@ -2154,7 +2003,7 @@ public class Op_Servlet extends HttpServlet {
 				Document geo = new Document();
 				Document geometry = new Document();
 				Document properties = new Document();
-				param7=Localidade;
+				
 				ConexaoMongo cm = new ConexaoMongo();
 				array_string_aux=Localidade.split(",");
 				

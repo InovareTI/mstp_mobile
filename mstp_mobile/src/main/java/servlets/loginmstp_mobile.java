@@ -143,6 +143,7 @@ public class loginmstp_mobile extends HttpServlet {
                 p.setPerfil_funcoes(con);
                 p.set_PessoaName(rs.getString("nome"));
                 p.set_PessoaUltimoLogin(rs.getString("ultimo_acesso"));
+                p.setExpediente(con, Integer.parseInt(rs.getString("empresa")));
                 rs2=con.Consulta("select * from usuario_ponto where id_usuario='"+p.get_PessoaUsuario()+"'");
                 if(rs2.next()) {
                 		rs3=con.Consulta("select * from pontos where id_ponto="+rs2.getString("id_ponto"));
@@ -206,7 +207,7 @@ public class loginmstp_mobile extends HttpServlet {
                 	daySeconds =0;
                 	//System.out.println(daySeconds);
                 }
-                dados="[[\"ok\"],[\""+rs.getString("perfil")+"\"],[\""+rs.getString("ultimo_acesso")+"\"],[\""+p.getEmpresa()+"\"],[\""+p.getEscritorio()+"\"],[\""+p.getEscritorio_lat()+"\"],[\""+p.getEscritorio_lng()+"\"],[\""+last_login_type+"\"],[\""+last_login_time+"\"],["+daySeconds+"],[\""+p.get_PessoaName()+"\"],[\""+p.getEmpresaObj().getNome()+"\"]]";
+                dados="[[\"ok\"],[\""+rs.getString("perfil")+"\"],[\""+rs.getString("ultimo_acesso")+"\"],[\""+p.getEmpresa()+"\"],[\""+p.getEscritorio()+"\"],[\""+p.getEscritorio_lat()+"\"],[\""+p.getEscritorio_lng()+"\"],[\""+last_login_type+"\"],[\""+last_login_time+"\"],["+daySeconds+"],[\""+p.get_PessoaName()+"\"],[\""+p.getEmpresaObj().getNome()+"\"],["+p.getExpediente().getExpdiente_intervalo_minutos()+"]]";
                 rs.close();
                 rs=null;
                 //System.out.println(dados);

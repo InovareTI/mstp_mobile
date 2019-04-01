@@ -29,11 +29,17 @@ public class Pessoa {
 	private String ultimo_login;
 	private String perfil;
 	private ResultSet rs;
+	private Expediente expediente;
 	
 	 public Pessoa() {
 		 empresaObj=new Empresa();
 	}
-	
+	public void setExpediente(Conexao c, int empresa) {
+		expediente=new Expediente(c,empresa);
+	}
+	public Expediente getExpediente() {
+		return expediente;
+	}
 	public Empresa getEmpresaObj() {
 		return empresaObj;
 	}
