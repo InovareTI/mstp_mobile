@@ -1121,8 +1121,8 @@ public class Op_Servlet extends HttpServlet {
 							}
 						
 						
-						
-						System.out.println(mensagem);
+						System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" resultado de busca de registros: "+ mensagem);
+						//System.out.println(mensagem)
 						resp.setContentType("application/json");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
@@ -1946,6 +1946,26 @@ public class Op_Servlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print("Log do erro enviado com sucesso! estaremos analisando as possíveis causas e soluções!");
 				
+			}else if(opt.equals("41")) {
+				Bson filtro;
+				List<Bson> filtros = new ArrayList<Bson>();
+				Document justificativa = new Document();
+				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				filtros.add(filtro);
+				FindIterable<Document> findIterable = cm.ConsultaCollectioncomFiltrosLista("Justificativas", filtros);
+				MongoCursor<Document> resultado = findIterable.iterator();
+				dados_tabela="<ons-select id=\"motivo_ajuste\" class=\"hora_ajuste_class\"><option value='0'>Selecione uma Opção</option>";
+				
+				while(resultado.hasNext()) {
+					justificativa=resultado.next();
+					dados_tabela=dados_tabela+"<option value='"+justificativa.getString("Justificativa")+"' data-foto='"+justificativa.getString("Foto_requerida")+"'>"+justificativa.getString("Justificativa")+"</option>\n";
+				}
+				dados_tabela=dados_tabela+"</ons-select>";
+				System.out.println(dados_tabela);
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
 			}
 	 }catch (SQLException e) {
 				
