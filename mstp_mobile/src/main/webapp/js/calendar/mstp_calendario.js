@@ -53,7 +53,7 @@ validRange: {
                   type: "POST",
                   data: {"opt":25,
                         "data":date.format('L')},		  
-                  url: "http://192.168.0.31:8080/mstp_mobile/Op_Servlet",	  
+                  url: "http://192.168.15.6:8080/mstp_mobile/Op_Servlet",	  
                   cache: false,
                   dataType: "text",
                   success: onSuccess_mostra_registro
@@ -70,7 +70,7 @@ validRange: {
           }
       },
       events: {
-        url: 'http://192.168.0.31:8080/mstp_mobile/Op_Servlet',
+        url: 'http://192.168.15.6:8080/mstp_mobile/Op_Servlet',
         type: 'POST',
         data: {
           opt: '23',
@@ -90,7 +90,7 @@ function calendario_prev() {
 	     alert(geral.mes_calendario);
 	     $('#calendar').fullCalendar({
 	     events: {
-	        url: 'http://192.168.0.31:8080/mstp_mobile/Op_Servlet',
+	        url: 'http://192.168.15.6:8080/mstp_mobile/Op_Servlet',
 	        type: 'POST',
 	        cache:false,
 	        data: {
@@ -106,7 +106,7 @@ function calendario_next() {
      geral.mes_calendario++;
       $('#calendar').fullCalendar({
      events: {
-        url: 'http://192.168.0.31:8080/mstp_mobile/Op_Servlet',
+        url: 'http://192.168.15.6:8080/mstp_mobile/Op_Servlet',
         type: 'POST',
         data: {
           opt: '23',

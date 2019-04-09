@@ -4,7 +4,7 @@ function carrega_justificativas(){
         type: "POST",
         data: {"opt":41
         },		  
-        url: "http://192.168.0.31:8080/mstp_mobile/Op_Servlet",	  
+        url: "http://192.168.15.6:8080/mstp_mobile/Op_Servlet",	  
         //url: "./Op_Servlet""
         cache: false,
         dataType: "text",
