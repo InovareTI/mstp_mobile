@@ -17,12 +17,17 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Field;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
@@ -114,6 +119,35 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros));
 		return findIterable;
 	}
+   public AggregateIterable<Document> ConsultaSitecomFiltrosListaAggregation(String longitude,String latitude, List<Bson> Filtros){
+		Document campos = new Document();
+		Document campos2 = new Document();
+		Document onde = new Document();
+		onde.append("type", "Point");
+		onde.append("coordinates", verifica_coordenadas(longitude,latitude));
+		//System.out.println(onde.toJson());
+		campos2.append("near", onde);
+		campos2.append("spherical", true);
+		//campos2.append("key", "GEO.geometry");
+		campos2.append("distanceField", "dist.calculated");
+		campos2.append("minDistance", 1);
+		campos2.append("maxDistance", 1000);
+		campos.append("$geoNear", campos2);
+		
+		AggregateIterable<Document> findIterable = db.getCollection("sites").aggregate(Arrays.asList(campos,Aggregates.match(Filters.and(Filtros))));
+		return findIterable;
+	}
+   public List<Double> verifica_coordenadas(String lng,String lat) {
+		 try {
+			 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+			 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+			 return Arrays.asList(f_lng,f_lat);
+		 }catch (NumberFormatException e) {
+				
+				
+				return Arrays.asList(0.0,0.0);
+		}
+	 }
 	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,String valor,int empresa){
 		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.eq(campo, valor)));
@@ -392,8 +426,12 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 			return true;
 		}
 	}
-	public void fecharConexao(String origem) {
+	public void criar2dsphereindex(){
+		db.getCollection("sites").createIndex(Indexes.geo2dsphere("GEO.geometry"));
+		
+	}
+	public void fecharConexao() {
 		 this.mongoClient.close();
-		 System.out.println("Conexão encerrada com sucesso. Chamada de :"+origem);
+		 //System.out.println("Conexão encerrada com sucesso. Chamada de :"+origem);
 	}
 }

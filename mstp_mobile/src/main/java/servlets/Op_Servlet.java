@@ -45,9 +45,12 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.json.JSONException;
 
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 
 import Classes.Conexao;
 import Classes.ConexaoMongo;
@@ -161,7 +164,7 @@ public class Op_Servlet extends HttpServlet {
 			opt=req.getParameter("opt");
 			
 			try {
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de operações opt -  "+ opt);
+				//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de operações opt -  "+ opt);
 				//System.out.println(p.get_PessoaUsuario()+" - Chegou no servlet de Operações do MSTP Mobile - "+f3.format(time)+" Opção:"+opt);
 				if(opt.equals("1")) {
 					System.out.println("Inserindo Registro - "+f3.format(time));
@@ -229,7 +232,7 @@ public class Op_Servlet extends HttpServlet {
 	    				if(conn.Inserir_simples(insere)){
 	    					geo.append("type", "Feature");
 							geometry.append("type", "Point");
-							geometry.append("coordinates", verfica_coordenadas(param1,param2));
+							geometry.append("coordinates", verifica_coordenadas(param2,param1));
 							geo.append("geometry",geometry);
 							properties.append("Usuario", p.get_PessoaUsuario());
 							properties.append("Local_Registro", array_string_aux[1]);
@@ -243,7 +246,7 @@ public class Op_Servlet extends HttpServlet {
 	    					registro.append("data_dia", time);
 	    					registro.append("data_dia_string", f2.format(mobile_time.getTime()));
 	    					registro.append("datetime_mobile", f3.format(mobile_time.getTime()));
-	    					System.out.println("hora formartada:"+ checa_formato_data_e_hora(f3.format(mobile_time.getTime())));
+	    					//System.out.println("hora formartada:"+ checa_formato_data_e_hora(f3.format(mobile_time.getTime())));
 	    					registro.append("datetime_mobile_data", checa_formato_data_e_hora(f3.format(mobile_time.getTime())));
 	    					registro.append("datetime_servlet", time);
 	    					registro.append("hora", mobile_time.get(Calendar.HOUR_OF_DAY));
@@ -359,7 +362,9 @@ public class Op_Servlet extends HttpServlet {
 	    					
 	    				}
 	    				
-	    				cm.fecharConexao("opt 1 - opServlet");
+	    				cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}else if(opt.equals("2")) {
 					param1=req.getParameter("func");
 					//System.out.println("funcionario é " + param1);
@@ -402,9 +407,11 @@ public class Op_Servlet extends HttpServlet {
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
-					cm.fecharConexao("opt 2 - opServlet");
+					cm.fecharConexao();
+    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}else if(opt.equals("3")) {
-					System.out.println("Alterando Expediente");
+					//System.out.println("Alterando Expediente");
 					param1=req.getParameter("entrada");
 					param2=req.getParameter("saida");
 					query="update expediente set entrada='"+param1+"',saida='"+param2+"'";
@@ -414,9 +421,11 @@ public class Op_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print("Dados Alterados com sucesso!");
 					}
-					cm.fecharConexao("opt 3 - opServlet");
+					cm.fecharConexao();
+    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("4")) {
-						System.out.println("Buscando Expediente");
+						//System.out.println("Buscando Expediente");
 						query="select * from expediente";
 						rs=conn.Consulta(query);
 						if(rs.next()) {
@@ -427,15 +436,18 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
-						cm.fecharConexao("opt 4 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("5")) {
-						System.out.println("Atualizando Hora Extra e Banco");
+						if(p.getPerfil_funcoes().contains("DistanciaController")) {
 						param1=req.getParameter("hora_extra");
 						param2=req.getParameter("banco");
 						param3=req.getParameter("reg_distancia");
 						param4=req.getParameter("vinculo");
-						query="update expediente set hora_extra='"+param1+"',banco_de_hora='"+param2+"',reg_distancia='"+param3+"',vinculo='"+param4+"'";
+						query="update expediente set hora_extra='"+param1+"',banco_de_hora='"+param2+"',reg_distancia='"+param3+"',vinculo='"+param4+"' where empresa="+p.getEmpresaObj().getEmpresa_id();
 						if(conn.Update_simples(query)) {
+							conn.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+p.get_PessoaUsuario()+"','ALTEROU PARAMETROS DE HORA EXTRA,BANCO,VINCULO,DISTANCIA','"+time+"');");
 							query="update usuarios set controle_vinculo='"+param4+"' where empresa='"+p.getEmpresa()+"'";
 							conn.Update_simples(query);
 							//System.out.println(query);
@@ -444,10 +456,18 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Dados Alterados com sucesso!");
 						}
-						cm.fecharConexao("opt 5 - opServlet");
+						cm.fecharConexao();
+						}else {
+							resp.setContentType("application/html");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("Sem Privilégio para essa Operação");
+						}
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("6")) {
-						System.out.println("Buscando Expediente");
-						query="select * from expediente";
+						//System.out.println("Buscando Expediente");
+						query="select * from expediente where empresa="+p.getEmpresaObj().getEmpresa_id();
 						rs=conn.Consulta(query);
 						if(rs.next()) {
 							dados_tabela="[["+rs.getString("hora_extra")+"],["+rs.getString("banco_de_hora")+"],["+rs.getString("reg_distancia")+"],["+rs.getString("vinculo")+"]]";
@@ -457,10 +477,12 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
-						cm.fecharConexao("opt 6 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("7")) {
 						param1=req.getParameter("versao_atual");
-						System.out.println("Buscando Versao");
+						//System.out.println("Buscando Versao");
 						query="select * from versao order by versao_atual desc limit 1";
 						rs=conn.Consulta(query);
 						if(rs.next()) {
@@ -476,7 +498,9 @@ public class Op_Servlet extends HttpServlet {
 								out.print("update");
 							}
 						}
-						cm.fecharConexao("opt 7 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("8")) {
 						
 						if(p.get_PessoaPerfil().equals("ADM")) {
@@ -507,9 +531,11 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Voce não possui privilégios para essa operação");
 						}
-						cm.fecharConexao("opt 8 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("9")) {
-						System.out.println("Buscando Funcionários");
+						//System.out.println("Buscando Funcionários");
 						if(p.get_PessoaPerfil().equals("ADM")) {
 							rs=conn.Consulta("select distinct usuario from registros");
 						}else {
@@ -538,12 +564,16 @@ public class Op_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
-						cm.fecharConexao("opt 9 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("10")) {
-						System.out.println("Encerrando sessão de "+p.get_PessoaUsuario() +" em  - "+f3.format(time));
+						//System.out.println("Encerrando sessão de "+p.get_PessoaUsuario() +" em  - "+f3.format(time));
 						conn.fecharConexao();
 						session.invalidate();
-						cm.fecharConexao("opt 10 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("11")) {
 						String ponto="";
 						query="select * from pontos where ativo='Y' and empresa="+p.getEmpresaObj().getEmpresa_id();
@@ -571,7 +601,9 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
-						cm.fecharConexao("opt 11 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("12")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -609,7 +641,9 @@ public class Op_Servlet extends HttpServlet {
 								out.print("[[\"Operacao falhou!\"],[\"null\"],[\"null\"],[\"null\"]]");
 							}
 						}
-						cm.fecharConexao("opt 12 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("13")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -634,7 +668,9 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Voce não possui privilégios para essa operação");
 						}
-						cm.fecharConexao("opt 13 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("14")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -664,13 +700,22 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
-						cm.fecharConexao("opt 14 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("15")) {
-						//System.out.println("Realizando consulta de sites");
+						
+						//cm.criar2dsphereindex();
+						CorrigeCoordenadasTabelaSites();
 						Bson filtro;
 						Document site = new Document();
-						List<Bson> lista_filtro = new ArrayList<Bson>();
+						List<Bson> lista_filtro = new ArrayList<>();
 						param2=req.getParameter("operadora");
+						param3=req.getParameter("latitude");
+						param4=req.getParameter("longitude");
+						//Point refPoint = new Point(new Position(Double.parseDouble(param4), Double.parseDouble(param3)));
+						
+						
 						System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" realizando pesquisa de site para  "+ param2);
 						FindIterable<Document> findIterable;
 						if(param2.contains(";")) {
@@ -684,11 +729,37 @@ public class Op_Servlet extends HttpServlet {
 						lista_filtro.add(filtro);
 						filtro = Filters.eq("site_ativo","Y");
 						lista_filtro.add(filtro);
+						
 						//System.out.println(aux1[0]);
 						//System.out.println(aux1[1]);
-						if(aux1[0].toUpperCase().equals("VIVO") || aux1[0].toUpperCase().equals("TIM") || aux1[0].toUpperCase().equals("OI") || aux1[0].toUpperCase().equals("CLARO")) {
-							findIterable= cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
-							//query="select * from sites where site_operadora='"+aux1[0]+"' and site_uf='"+aux1[1]+"' and site_ativo='Y'";
+						if(aux1[0].toUpperCase().equals("VIVO") || aux1[0].toUpperCase().equals("TIM") || aux1[0].toUpperCase().equals("OI") || aux1[0].toUpperCase().equals("CLARO") || aux1[0].toUpperCase().equals("NEXTEL")) {
+							AggregateIterable aggregateIterable= cm.ConsultaSitecomFiltrosListaAggregation(param4,param3,lista_filtro);
+							MongoCursor<Document> resultado = aggregateIterable.iterator();
+							if(resultado.hasNext()) {
+								dados_tabela="[";
+								//rs.beforeFirst();
+								while(resultado.hasNext()) {
+										site = resultado.next();
+										//System.out.println(site.toJson());
+										dados_tabela=dados_tabela+"[\""+site.getString("site_id")+"\",\""+site.getString("site_latitude").replace(",", ".")+"\",\""+site.getString("site_longitude").replace(",", ".")+"\",\""+site.getString("site_operadora")+"\",[\""+site.getString("site_id")+"\",\""+Math.round(site.get("dist",Document.class).getDouble("calculated"))+"m\"]],\n";
+										
+									
+								}
+								dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+								dados_tabela=dados_tabela+"]";
+								//System.out.println(dados_tabela);
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+								
+							}else {
+								dados_tabela="[]";
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+							}
 						}else {
 							lista_filtro.clear();
 							filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
@@ -696,7 +767,31 @@ public class Op_Servlet extends HttpServlet {
 							filtro = Filters.regex("site_id", ".*"+aux1[0]+".*");
 							lista_filtro.add(filtro);
 							findIterable= cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
-							//query="select * from sites where site_id like '%"+aux1[0]+"%' and site_ativo='Y'";
+							MongoCursor<Document> resultado = findIterable.iterator();
+							if(resultado.hasNext()) {
+								dados_tabela="[";
+								//rs.beforeFirst();
+								while(resultado.hasNext()) {
+										site = resultado.next();
+										dados_tabela=dados_tabela+"[\""+site.getString("site_id")+"\",\""+site.getString("site_latitude").replace(",", ".")+"\",\""+site.getString("site_longitude").replace(",", ".")+"\",\""+site.getString("site_operadora")+"\",[\""+site.getString("site_id")+"\",\"Distancia ñ calculada\"]],\n";
+										
+									
+								}
+								dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+								dados_tabela=dados_tabela+"]";
+								//System.out.println(dados_tabela);
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+								
+							}else {
+								dados_tabela="[]";
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+							}
 						}
 						}else {
 							lista_filtro.clear();
@@ -705,39 +800,38 @@ public class Op_Servlet extends HttpServlet {
 							filtro = Filters.regex("site_id", ".*"+param2.toUpperCase()+".*");
 							lista_filtro.add(filtro);
 							findIterable= cm.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
-							//query="select * from sites where site_id like '%"+param2+"%' and site_ativo='Y'";
+							MongoCursor<Document> resultado = findIterable.iterator();
+							if(resultado.hasNext()) {
+								dados_tabela="[";
+								//rs.beforeFirst();
+								while(resultado.hasNext()) {
+										site = resultado.next();
+										dados_tabela=dados_tabela+"[\""+site.getString("site_id")+"\",\""+site.getString("site_latitude").replace(",", ".")+"\",\""+site.getString("site_longitude").replace(",", ".")+"\",\""+site.getString("site_operadora")+"\",[\""+site.getString("site_id")+"\",\"Distancia ñ calculada\"]],\n";
+										
+									
+								}
+								dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+								dados_tabela=dados_tabela+"]";
+								//System.out.println(dados_tabela);
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+								
+							}else {
+								dados_tabela="[]";
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+							}
 						}
 						
-						//System.out.println(query);
-						//rs=conn.Consulta(query);
-						MongoCursor<Document> resultado = findIterable.iterator();
-						if(resultado.hasNext()) {
-							dados_tabela="[";
-							//rs.beforeFirst();
-							while(resultado.hasNext()) {
-									site = resultado.next();
-									dados_tabela=dados_tabela+"[\""+site.getString("site_id")+"\",\""+site.getString("site_latitude").replace(",", ".")+"\",\""+site.getString("site_longitude").replace(",", ".")+"\",\""+site.getString("site_operadora")+"\",[\""+site.getString("site_id")+"\"]],\n";
-									
-								
-							}
-							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
-							dados_tabela=dados_tabela+"]";
-							//System.out.println(dados_tabela);
-							resp.setContentType("application/html");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print(dados_tabela);
-							cm.fecharConexao("opt 15 - OpServlet");
-						}else {
-							dados_tabela="[]";
-							resp.setContentType("application/html");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print(dados_tabela);
-						}
-						cm.fecharConexao("opt 15 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("16")) {
-						System.out.println("Carregando escritorios no mapa");
+						//System.out.println("Carregando escritorios no mapa");
 						rs=conn.Consulta("Select * from pontos where ativo ='Y' and latitude_ponto<>'' and longitude_ponto<>'' and empresa="+p.getEmpresaObj().getEmpresa_id()+" limit 50");
 						//System.out.println("Carregando sites no mapa2");
 						if(rs.next()){
@@ -761,12 +855,14 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("vazia");
 						}
-						cm.fecharConexao("opt 16 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("17")) {
 
 						param1=req.getParameter("tipo");
 						param5=req.getParameter("datetime");
-						System.out.println("Lançando "+param1+" via Mobile para usuário "+p.get_PessoaUsuario() + " - "+f3.format(time));
+						//System.out.println("Lançando "+param1+" via Mobile para usuário "+p.get_PessoaUsuario() + " - "+f3.format(time));
 						if(param1.equals("folga")) {
 						query="select id_ajuste_ponto,aprovada from ajuste_ponto where motivo='FOLGA' and other2='"+param5+"' and usuario='"+p.get_PessoaUsuario()+"'";
 						rs=conn.Consulta(query);
@@ -836,11 +932,13 @@ public class Op_Servlet extends HttpServlet {
 							}
 							}
 						}
-						cm.fecharConexao("opt 17 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("18")) {
-						System.out.println("Buscando Operadoras");
+						//System.out.println("Buscando Operadoras");
 						Bson filtro;
-						List<Bson> lista_filtros= new ArrayList<Bson>();
+						List<Bson> lista_filtros= new ArrayList<>();
 						filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
 						lista_filtros.add(filtro);
 						filtro=Filters.eq("site_ativo","Y");
@@ -878,11 +976,13 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Acesse www.mstp.com.br para carregar sites");
 						}
-						cm.fecharConexao("opt 18 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("19")){
 						double horas;
 						query="select sum(he_quantidade),sum(horas_noturnas) from horas_extras where id_usuario='"+p.get_PessoaUsuario()+"' and aprovada='Y' and compensada='N' and other1=''";
-						System.out.println("Consultando Horas de  "+p.get_PessoaUsuario()+" em "+f3.format(time));
+						//System.out.println("Consultando Horas de  "+p.get_PessoaUsuario()+" em "+f3.format(time));
 						rs=conn.Consulta(query);
 						if(rs.next()) {
 							horas=rs.getDouble(1)+rs.getDouble(2);
@@ -891,7 +991,9 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(horas);
 						}
-						cm.fecharConexao("opt 19 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("20")){
 						query="";
 						if(p.get_PessoaEmail().contains("BancoHHApprover")) {
@@ -920,7 +1022,9 @@ public class Op_Servlet extends HttpServlet {
 								out.print(dados_tabela);
 							}
 						}
-						cm.fecharConexao("opt 20 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("21")){
 						query="";
 						query="select id_message,titulo,message from updates_message where usuario='"+p.get_PessoaUsuario()+"' and messagem_lida='N'";
@@ -943,13 +1047,17 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("");
 						}
-						cm.fecharConexao("opt 21 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("22")){
 						param1=req.getParameter("id_msg");
 						query="UPDATE updates_message set messagem_lida='Y' where id_message='"+param1+"' and usuario='"+p.get_PessoaUsuario()+"'";
 						conn.Update_simples(query);
 							
-						cm.fecharConexao("opt 22 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("23")){
 						String cor="";
 						String problema="ok";
@@ -1036,20 +1144,24 @@ public class Op_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
-							cm.fecharConexao("opt 23 - opServlet");
+							cm.fecharConexao();
+		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("24")){
 						
 						query="select SQL_NO_CACHE reg_distancia,now() as agora from expediente where now()=now()";
 						rs=conn.Consulta(query);
 						
 						if(rs.next()) {
-							System.out.println("Controle de distancia é: "+rs.getString("reg_distancia"));
+							//System.out.println("Controle de distancia é: "+rs.getString("reg_distancia"));
 							resp.setContentType("application/text");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(rs.getString("reg_distancia"));
 						}
-						cm.fecharConexao("opt 24 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("25")){
 						param1=req.getParameter("data");
 						String mensagem="";
@@ -1121,13 +1233,15 @@ public class Op_Servlet extends HttpServlet {
 							}
 						
 						
-						System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" resultado de busca de registros: "+ mensagem);
+						//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" resultado de busca de registros: "+ mensagem);
 						//System.out.println(mensagem)
 						resp.setContentType("application/json");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(mensagem);
-						cm.fecharConexao("opt 25 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("26")){
 						param1=req.getParameter("entrada");
 						param2=req.getParameter("saida");
@@ -1158,13 +1272,17 @@ public class Op_Servlet extends HttpServlet {
 							out.print("Ajuste Solicitado com Sucesso. Aguarde aprovação");
 						}
 						}
-						cm.fecharConexao("opt 26 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("27")){
 						resp.setContentType("application/text");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Ativo");
-						cm.fecharConexao("opt 27 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("28")){
 						String tipo="";
 						String resultado="";
@@ -1235,12 +1353,14 @@ public class Op_Servlet extends HttpServlet {
 						  daySeconds=0;
 					  }
 					     resultado=resultado+",["+daySeconds+"]]";
-		                 System.out.println(resultado);
+		                 //System.out.println(resultado);
 		                resp.setContentType("application/text");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(resultado);
-						cm.fecharConexao("opt 28 - opServlet");
+						cm.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("29")){
 						param1=req.getParameter("nome");
 						param2=req.getParameter("id_");
@@ -1274,13 +1394,13 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Erro na solicitação do novo site.");
 						}
-					}cm.fecharConexao("opt 29 - opServlet");
+					}cm.fecharConexao();
+    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("30")){
 							param1=req.getParameter("latitudemobile");
 							param2=req.getParameter("longitudemobile");
 							param3=req.getParameter("_");
-							//query="insert into localiza_usuarios (usuario,lat,lng,empresa) values ('"+p.get_PessoaUsuario()+"','"+param1+"','"+param2+"','"+p.getEmpresa()+"')";
-							//conn.Inserir_simples(query);
 							
 							Document document = new Document();
 							Document properties = new Document();
@@ -1299,7 +1419,9 @@ public class Op_Servlet extends HttpServlet {
     						document.append("GEO", geo);
     						cm.InserirSimpels("Localiza_Usuarios", document);
     						
-    						cm.fecharConexao("opt 30 - opServlet");
+    						cm.fecharConexao();
+    	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+    	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("31")){
 							System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" buscando quantidade de atividades");
 							//System.out.println("buscando quantidade atividades para "+p.get_PessoaUsuario())
@@ -1333,7 +1455,9 @@ public class Op_Servlet extends HttpServlet {
 							
 							
 							
-							cm.fecharConexao("opt 31 - opServlet");
+							cm.fecharConexao();
+		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("32")){
 							query="";
 							String dstart="";
@@ -1350,9 +1474,9 @@ public class Op_Servlet extends HttpServlet {
 							Document linha_rollout=new Document();
 							Document milestone=new Document();
 							Document site=new Document();
-							List<Bson> lista_filtro = new ArrayList<Bson>();
-							List<Bson> lista_filtro_site = new ArrayList<Bson>();
-							List<Document> milestones = new ArrayList<Document>();
+							List<Bson> lista_filtro = new ArrayList<>();
+							List<Bson> lista_filtro_site = new ArrayList<>();
+							List<Document> milestones = new ArrayList<>();
 							rs=conn.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
 							if(rs.next()) {
 								rs.beforeFirst();
@@ -1485,17 +1609,19 @@ public class Op_Servlet extends HttpServlet {
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
 								out.print(dados_tabela);
-								cm.fecharConexao("opt 32 - opServlet");
+								cm.fecharConexao();
+			    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("33")){
 							
 							param1=req.getParameter("recid");
 							param2=req.getParameter("milestone");
 							param3=req.getParameter("status");
 							param4=req.getParameter("siteid");
-							System.out.println("param1:"+param1);
-							System.out.println("param2:"+param2);
-							System.out.println("param3:"+param3);
-							System.out.println("param4:"+param4);
+							//System.out.println("param1:"+param1);
+							//System.out.println("param2:"+param2);
+							//System.out.println("param3:"+param3);
+							//System.out.println("param4:"+param4);
 							Document filtro = new Document();
 							Document update=new Document();
 							Document updates=new Document();
@@ -1621,9 +1747,11 @@ public class Op_Servlet extends HttpServlet {
 								PrintWriter out = resp.getWriter();
 								out.print("Tarefa atualizada com Sucesso!");
 							//}
-							cm.fecharConexao("opt 33 - opServlet");
+								cm.fecharConexao();
+			    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("34")){
-							System.out.println("Salvando foto de perfil");
+							//System.out.println("Salvando foto de perfil");
 							
 							if (ServletFileUpload.isMultipartContent(req)) {
 								List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
@@ -1644,7 +1772,7 @@ public class Op_Servlet extends HttpServlet {
 										 int row = statement.executeUpdate();
 									     statement.getConnection().commit();
 									     if (row>0) {
-									        	System.out.println("Foto de Perfil salva com sucesso");
+									        	//System.out.println("Foto de Perfil salva com sucesso");
 									        	statement.close();
 									     }
 								    }
@@ -1652,9 +1780,11 @@ public class Op_Servlet extends HttpServlet {
 								}
 							
 							
-							cm.fecharConexao("opt 34 - opServlet");
+							cm.fecharConexao();
+		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("35")){
-							System.out.println("Carregando foto de perfil de "+p.get_PessoaUsuario());
+							//System.out.println("Carregando foto de perfil de "+p.get_PessoaUsuario());
 							ServletOutputStream out = resp.getOutputStream();
 							query="";
 							Blob image = null;
@@ -1662,7 +1792,7 @@ public class Op_Servlet extends HttpServlet {
 							query="select foto_perfil from usuarios where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'";
 							rs=conn.Consulta(query);
 							if(rs.next()) {
-								System.out.println(" foto encontrada");
+								//System.out.println(" foto encontrada");
 								image=rs.getBlob(1);
 								
 								byte byteArray[]=image.getBytes(1, (int) image.length());
@@ -1670,12 +1800,14 @@ public class Op_Servlet extends HttpServlet {
 								out.write(byteArray);
 								out.flush();
 								out.close();
-								System.out.println(" foto carregada");
+								//System.out.println(" foto carregada");
 								
 							}
-							cm.fecharConexao("opt 35 - opServlet");
+							cm.fecharConexao();
+		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("36")){
-							System.out.println("Buscando lista de Aprovacoes");
+							//System.out.println("Buscando lista de Aprovacoes");
 							param1=req.getParameter("usuario");
 							param2=req.getParameter("tipo");
 							query="";
@@ -1750,7 +1882,9 @@ public class Op_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
-							cm.fecharConexao("opt 36 - opServlet");
+							cm.fecharConexao();
+		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("37")){
 							param1=req.getParameter("tipo");
 							if(param1.equals("ajustePonto")) {
@@ -1828,9 +1962,12 @@ public class Op_Servlet extends HttpServlet {
 										out.print(dados_tabela);
 									}
 									}
-							}cm.fecharConexao("opt 37 - opServlet");
+							}
+							cm.fecharConexao();
+		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("38")){
-							System.out.println("iniciando reprovação");
+							//System.out.println("iniciando reprovação");
 							param1=req.getParameter("usuario");
 							param2=req.getParameter("tipo");
 							param3=req.getParameter("id");
@@ -1862,9 +1999,11 @@ public class Op_Servlet extends HttpServlet {
 									out.print("Requisição Reprovada com Sucesso!");
 								}
 							}
-							cm.fecharConexao("opt 38 - opServlet");
+							cm.fecharConexao();
+		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("39")){
-							System.out.println("iniciando reprovação");
+							//System.out.println("iniciando reprovação");
 							param1=req.getParameter("usuario");
 							param2=req.getParameter("tipo");
 							param3=req.getParameter("id");
@@ -1936,7 +2075,9 @@ public class Op_Servlet extends HttpServlet {
 								
 							}
 						}
-							cm.fecharConexao("opt 39 - opServlet");
+							cm.fecharConexao();
+		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("40")){
 				param1=req.getParameter("log");
 				Semail email=new Semail();
@@ -1945,10 +2086,12 @@ public class Op_Servlet extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print("Log do erro enviado com sucesso! estaremos analisando as possíveis causas e soluções!");
-				
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("41")) {
 				Bson filtro;
-				List<Bson> filtros = new ArrayList<Bson>();
+				List<Bson> filtros = new ArrayList<>();
 				Document justificativa = new Document();
 				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
 				filtros.add(filtro);
@@ -1961,11 +2104,137 @@ public class Op_Servlet extends HttpServlet {
 					dados_tabela=dados_tabela+"<option value='"+justificativa.getString("Justificativa")+"' data-foto='"+justificativa.getString("Foto_requerida")+"'>"+justificativa.getString("Justificativa")+"</option>\n";
 				}
 				dados_tabela=dados_tabela+"</ons-select>";
-				System.out.println(dados_tabela);
+				//System.out.println(dados_tabela);
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("42")) {
+				//System.out.println("Salvando foto de justificativa");
+				int ultimo=0;
+				rs=conn.Consulta("select * from ajuste_ponto where usuario='"+p.get_PessoaUsuario()+"' order by id_ajuste_ponto desc limit 1");
+				if(rs.next()) {
+					ultimo=rs.getInt(1);
+				}
+				if (ServletFileUpload.isMultipartContent(req)) {
+					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+					
+					Iterator<FileItem> iter = multiparts.iterator();
+					while (iter.hasNext()) {
+						FileItem item = iter.next();
+						if (item.isFormField()) {
+					       // processFormField(item);
+					    } else {
+					    	System.out.println(item.getContentType());
+					    	System.out.println("Item size: " + item.getSize());
+					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+					    	query="";
+							query="update ajuste_ponto set foto_justificativa=? where id_ajuste_ponto="+ultimo+" and empresa="+p.getEmpresaObj().getEmpresa_id();
+							PreparedStatement statement;
+							 statement = conn.getConnection().prepareStatement(query);
+							 statement.setBlob(1, inputStream2);
+							 int row = statement.executeUpdate();
+						     statement.getConnection().commit();
+						     if (row>0) {
+						        	System.out.println("Foto de Justificativa salva com sucesso");
+						        	statement.close();
+						     }
+					    }
+					}
+					}
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("43")) {
+
+				System.out.println("Carregando sites no mapa");
+				//Essa função ainda precisa ser adaptada para excuir folgas, pontos ajustados,férias e licença Médica
+				Calendar dia = Calendar.getInstance();
+				dia.set(Calendar.HOUR_OF_DAY,00);
+				
+				dia.set(Calendar.MINUTE,00);
+				Document registro=new Document();
+				Document geo=new Document();
+				Bson filtro;
+				List<Bson> lista_filtro = new ArrayList<Bson>();
+				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				lista_filtro.add(filtro);
+				//filtro=Filters.not("Empresa",p.getEmpresa().getEmpresa_id());
+				lista_filtro.add(filtro);
+				filtro=Filters.gte("data_dia",dia.getTime());
+				lista_filtro.add(filtro);
+				filtro=Filters.lte("data_dia",time);
+				lista_filtro.add(filtro);
+				FindIterable<Document> findIterable =cm.ConsultaCollectioncomFiltrosLista("Registros", lista_filtro);
+				MongoCursor<Document> resultado= findIterable.iterator();
+				if(resultado.hasNext()) {
+					
+					
+					dados_tabela="";
+					dados_tabela=  "{"+
+					    "\"type\": \"FeatureCollection\","+
+					    "\"features\": [";
+					while(resultado.hasNext()) {
+						registro=resultado.next();
+						geo = (Document) registro.get("GEO");
+						
+						dados_tabela=dados_tabela+geo.toJson()+",";
+						
+					}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+					dados_tabela=dados_tabela+"]";
+					dados_tabela=dados_tabela +   "}";
+				}else {
+					dados_tabela="";
+					dados_tabela=  "{"+
+					    "\"type\": \"FeatureCollection\","+
+					    "\"features\": []}";
+				}
+					resp.setContentType("application/json");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
+				
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			
+			}else if(opt.equals("44")) {
+				Bson filtro;
+				Document site;
+				List<Bson> lista_filtro = new ArrayList<>();
+				param2=req.getParameter("siteid");
+				param3=req.getParameter("latitude");
+				param4=req.getParameter("longitude");
+				//Point refPoint = new Point(new Position(Double.parseDouble(param4), Double.parseDouble(param3)));
+				System.out.println(param2);
+				System.out.println(param3);
+				System.out.println(param4);
+				filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				lista_filtro.add(filtro);
+				filtro = Filters.eq("site_id",param2);
+				lista_filtro.add(filtro);
+				filtro = Filters.eq("site_ativo","Y");
+				lista_filtro.add(filtro);
+				
+				System.out.println("funcao 44");
+				AggregateIterable<Document> aggregateIterable= cm.ConsultaSitecomFiltrosListaAggregation(param4,param3,lista_filtro);
+					MongoCursor<Document> resultado = aggregateIterable.iterator();
+					if(resultado.hasNext()) {
+						System.out.println("achou resultado");
+						site = resultado.next();
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(Math.round(site.get("dist",Document.class).getDouble("calculated")));
+					}
+					cm.fecharConexao();
+					Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				
 			}
 	 }catch (SQLException e) {
 				
@@ -2045,7 +2314,7 @@ public class Op_Servlet extends HttpServlet {
 			    		System.out.println("Registro Cadastrado");
 			    		geo.append("type", "Feature");
 						geometry.append("type", "Point");
-						geometry.append("coordinates", verfica_coordenadas(param1,param2));
+						geometry.append("coordinates", verifica_coordenadas(param2,param1));
 						geo.append("geometry",geometry);
 						properties.append("Usuario", p.get_PessoaUsuario());
 						properties.append("Local_Registro", array_string_aux[1]);
@@ -2208,22 +2477,22 @@ public class Op_Servlet extends HttpServlet {
 						
 						}
 						}}
-				cm.fecharConexao("funcao de inserir registro");	
+				cm.fecharConexao();	
 				}
 						 catch (ParseException e) {
 						    e.printStackTrace();
-						    cm.fecharConexao("funcao de inserir registro");	
+						    cm.fecharConexao();	
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
-							cm.fecharConexao("funcao de inserir registro");	
+							cm.fecharConexao();	
 						} 
 					}		
 	 public Date checa_formato_data(String data) {
 			try {
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-				Date d1=format.parse(data);
-				return d1;
+				return format.parse(data);
+				
 			}catch (ParseException e) {
 				//System.out.println(data + " - Data inválida");
 				return null;
@@ -2234,8 +2503,8 @@ public class Op_Servlet extends HttpServlet {
 			try {
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 				
-				Date d1=format.parse(data);
-				return d1;
+				return format.parse(data);
+				
 			}catch (ParseException e) {
 				//System.out.println(data + " - Data inválida");
 				return null;
@@ -2313,15 +2582,60 @@ public class Op_Servlet extends HttpServlet {
 				return null;
 			}
 		}
-	 public List<Double> verfica_coordenadas(String lng,String lat) {
+	 public List<Double> verifica_coordenadas(String lng,String lat) {
 		 try {
 			 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
 			 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
-			 return Arrays.asList(f_lat,f_lng);
+			 return Arrays.asList(f_lng,f_lat);
 		 }catch (NumberFormatException e) {
 				
 				
 				return Arrays.asList(-10.00,-10.00);
+		}
+	 }
+	 public void CorrigeCoordenadasTabelaSites() {
+		 int contador=0;
+		 try {
+			System.out.println("iniando ajustes de coordenadas da empresa 5");
+			ConexaoMongo conexao= new ConexaoMongo();
+			Bson filtro ;
+			Document site;
+			Document update;
+			Document comando;
+			Document condicao;
+			List<Double> coordenadas;
+			filtro=Filters.eq("Empresa",5);
+			List<Bson> filtros = new ArrayList<>();
+			filtros.add(filtro);
+			filtro=Filters.eq("site_ativo","Y");
+			filtros.add(filtro);
+			filtro=Filters.eq("site_uf","MS");
+			filtros.add(filtro);
+			
+			FindIterable<Document> findIterable= conexao.ConsultaCollectioncomFiltrosLista("sites", filtros);
+			MongoCursor<Document> resultado = findIterable.iterator();
+			while(resultado.hasNext()) {
+				condicao=new Document();
+				update=new Document();
+				comando=new Document();
+				site=resultado.next();
+				condicao.append("Empresa", 5);
+				condicao.append("site_id",site.getString("site_id"));
+				
+				condicao.append("site_uf","MS");
+				coordenadas=verifica_coordenadas(site.getString("site_longitude"), site.getString("site_latitude"));
+				update.append("GEO.geometry.coordinates", coordenadas);
+				
+				
+				comando.append("$set", update);
+				//System.out.println(comando.toJson());
+				conexao.AtualizaUm("sites", condicao, comando);
+				contador=contador+1;
+				}
+			System.out.println(contador + "Sites atualizados");
+			
+		 }catch (Exception e) {
+			 System.out.println(contador + "Sites atualizados");
 		}
 	 }
 }

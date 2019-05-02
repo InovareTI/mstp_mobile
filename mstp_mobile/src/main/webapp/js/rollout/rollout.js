@@ -45,6 +45,7 @@ function carrega_minhas_atividades(){
 	 }
 
 function carrega_atividades_quantidade_label(){
+	 
 	   var timestamp = Date.now();
 	       $.ajax({
 			  type: "POST",
