@@ -4,7 +4,10 @@ package servlets;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Blob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.Servlet;
@@ -102,7 +106,7 @@ public class Op_Servlet extends HttpServlet {
 		 HttpSession session = req.getSession(true);
 		 Pessoa p= (Pessoa) session.getAttribute("pessoa");
 		 opt=req.getParameter("opt");
-		 if(p==null) {
+		 if(p==null || p.equals(null)) {
 			 System.out.println("pessoa null com opcao:"+opt);
 			 return;
 		 }
@@ -231,6 +235,7 @@ public class Op_Servlet extends HttpServlet {
 	    				//System.out.println(insere);
 	    				if(conn.Inserir_simples(insere)){
 	    					geo.append("type", "Feature");
+	    					geo.append("user_tipo", p.get_PessoaTipo());
 							geometry.append("type", "Point");
 							geometry.append("coordinates", verifica_coordenadas(param2,param1));
 							geo.append("geometry",geometry);
@@ -271,7 +276,7 @@ public class Op_Servlet extends HttpServlet {
 								//System.out.println("Registro tipo: "+tipo_registro);
 								out.print(tipo_registro+";"+rs.getString("datetime_mobile"));
 				    		}
-				    
+				    		//envia_mensagem();
 				    	
 		    			}
 	    				if(tipo_registro.equals("Saída")) {
@@ -365,6 +370,9 @@ public class Op_Servlet extends HttpServlet {
 	    				cm.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				
+	    				
+	    				
 				}else if(opt.equals("2")) {
 					param1=req.getParameter("func");
 					//System.out.println("funcionario é " + param1);
@@ -426,20 +434,33 @@ public class Op_Servlet extends HttpServlet {
     				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("4")) {
 						//System.out.println("Buscando Expediente");
-						query="select * from expediente";
+						query="select * from expediente where empresa="+p.getEmpresaObj().getEmpresa_id();
 						rs=conn.Consulta(query);
 						if(rs.next()) {
-							dados_tabela="[[\""+rs.getString("entrada")+"\"],[\""+rs.getString("saida")+"\"]]";
-							//System.out.println(dados_tabela);
-							resp.setContentType("application/html");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print(dados_tabela);
+							dados_tabela="[[\""+rs.getString("entrada")+"\"],[\""+rs.getString("saida")+"\"]";
+							//
+							
 						}
+						query="select entrada,Ini_inter,Fim_inter,saida from registro_foto_controle where empresa="+p.getEmpresaObj().getEmpresa_id();
+						rs=conn.Consulta(query);
+						if(rs.next()) {
+							dados_tabela=dados_tabela+",[\""+rs.getString(1)+"\"],";
+							dados_tabela=dados_tabela+"[\""+rs.getString(2)+"\"],";
+							dados_tabela=dados_tabela+"[\""+rs.getString(3)+"\"],";
+							dados_tabela=dados_tabela+"[\""+rs.getString(4)+"\"]";
+						}
+						dados_tabela=dados_tabela+"]";
+						//System.out.println(dados_tabela);
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
 						cm.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("5")) {
+						param1=req.getParameter("tipo");
+						if(param1.equals("reg_distancia")) {
 						if(p.getPerfil_funcoes().contains("DistanciaController")) {
 						param1=req.getParameter("hora_extra");
 						param2=req.getParameter("banco");
@@ -463,6 +484,38 @@ public class Op_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Sem Privilégio para essa Operação");
 						}
+						}else if(param1.equals("reg_foto")) {
+							param1=req.getParameter("entrada");
+							param2=req.getParameter("iniInter");
+							param3=req.getParameter("fimInter");
+							param4=req.getParameter("saida");
+							query="update registro_foto_controle set Entrada='"+param1+"',Ini_Inter='"+param2+"',Fim_inter='"+param3+"',Saida='"+param4+"',Alter_by='"+p.get_PessoaUsuario()+"',Alter_dt='"+time+"' where Empresa="+p.getEmpresaObj().getEmpresa_id();
+							if(conn.Update_simples(query)) {
+								conn.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+p.get_PessoaUsuario()+"','ALTEROU PARAMETROS DE FOTO PARA REGISTRO','"+time+"');");
+								query="update usuarios set controle_vinculo='"+param4+"' where empresa='"+p.getEmpresa()+"'";
+								conn.Update_simples(query);
+								//System.out.println(query);
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print("Dados Alterados com sucesso!");
+							}
+							cm.fecharConexao();
+							
+						}else if(param1.equals("autorizacao_hora_extra")) {
+							param1=req.getParameter("autorizacao_controle");
+							
+							query="update expediente set autoriza_previa_he='"+param1+"' where empresa="+p.getEmpresaObj().getEmpresa_id();
+							if(conn.Update_simples(query)) {
+								conn.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+p.get_PessoaUsuario()+"','ALTEROU PARAMETROS DE AUTORIZACAO PREVIA','"+time+"');");
+								
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print("Dados Alterados com sucesso!");
+							}
+							cm.fecharConexao();
+						}
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("6")) {
@@ -470,13 +523,23 @@ public class Op_Servlet extends HttpServlet {
 						query="select * from expediente where empresa="+p.getEmpresaObj().getEmpresa_id();
 						rs=conn.Consulta(query);
 						if(rs.next()) {
-							dados_tabela="[["+rs.getString("hora_extra")+"],["+rs.getString("banco_de_hora")+"],["+rs.getString("reg_distancia")+"],["+rs.getString("vinculo")+"]]";
+							dados_tabela="[["+rs.getString("hora_extra")+"],["+rs.getString("banco_de_hora")+"],["+rs.getString("reg_distancia")+"],["+rs.getString("vinculo")+"],["+rs.getString("autoriza_previa_he")+"]";
 							//System.out.println(dados_tabela);
-							resp.setContentType("application/html");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print(dados_tabela);
+							
 						}
+						query="select entrada,Ini_inter,Fim_inter,saida from registro_foto_controle where empresa="+p.getEmpresaObj().getEmpresa_id();
+						rs=conn.Consulta(query);
+						if(rs.next()) {
+							dados_tabela=dados_tabela+",[\""+rs.getString(1)+"\"],";
+							dados_tabela=dados_tabela+"[\""+rs.getString(2)+"\"],";
+							dados_tabela=dados_tabela+"[\""+rs.getString(3)+"\"],";
+							dados_tabela=dados_tabela+"[\""+rs.getString(4)+"\"]";
+						}
+						dados_tabela=dados_tabela+"]";
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
 						cm.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -706,7 +769,7 @@ public class Op_Servlet extends HttpServlet {
 					}else if(opt.equals("15")) {
 						
 						//cm.criar2dsphereindex();
-						CorrigeCoordenadasTabelaSites();
+						//CorrigeCoordenadasTabelaSites();
 						Bson filtro;
 						Document site = new Document();
 						List<Bson> lista_filtro = new ArrayList<>();
@@ -716,7 +779,7 @@ public class Op_Servlet extends HttpServlet {
 						//Point refPoint = new Point(new Position(Double.parseDouble(param4), Double.parseDouble(param3)));
 						
 						
-						System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" realizando pesquisa de site para  "+ param2);
+						System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" realizando pesquisa de sites próximas  "+ param2);
 						FindIterable<Document> findIterable;
 						if(param2.contains(";")) {
 							
@@ -945,7 +1008,7 @@ public class Op_Servlet extends HttpServlet {
 						lista_filtros.add(filtro);
 						List<String> operadora = cm.ConsultaSimplesDistinct("sites", "site_operadora", lista_filtros);
 						//query="select distinct site_operadora,site_uf from sites where site_uf<>'' and site_operadora<>'' and site_ativo='Y'";
-						System.out.println("quantidade de operadoras:"+operadora.size());
+						//System.out.println("quantidade de operadoras:"+operadora.size());
 						if(operadora.size()>0) {
 							for(int indice=0;indice<operadora.size();indice++) {
 								lista_filtros= new ArrayList<Bson>();
@@ -1288,54 +1351,56 @@ public class Op_Servlet extends HttpServlet {
 						String resultado="";
 						long daySeconds=0;
 						resultado="[";
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' order by datetime_servlet desc limit 1";
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
 					  rs=conn.Consulta(query);
 					  if(rs.next()) {
 						  resultado=resultado+"[\"Entrada\"],";
 					  }else {
 						  resultado=resultado+"[],";
 					  }
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Inicio_intervalo' order by datetime_servlet desc limit 1";
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Inicio_intervalo' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
 					  rs=conn.Consulta(query);
 					  if(rs.next()) {
 						  resultado=resultado+"[\"Inicio_intervalo\"],";
 					  }else {
 						  resultado=resultado+"[],";
 					  }
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Fim_intervalo' order by datetime_servlet desc limit 1";
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Fim_intervalo' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
 					  rs=conn.Consulta(query);
 					  if(rs.next()) {
 						  resultado=resultado+"[\"Fim_intervalo\"],";
 					  }else {
 						  resultado=resultado+"[],";
 					  }
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Saída' order by datetime_servlet desc limit 1";
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Saída' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
 					  rs=conn.Consulta(query);
 					  if(rs.next()) {
 						  resultado=resultado+"[\"Saída\"]";
 					  }else {
 						  resultado=resultado+"[]";
 					  }
-					  
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' order by datetime_servlet desc limit 1";
+					  Calendar c = Calendar.getInstance();
+	                  Calendar now = Calendar.getInstance();
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
 					  rs=conn.Consulta(query);
 					  if(rs.next()) {
 						  tipo=rs.getString("tipo_registro");
-						  rs3=conn.Consulta("SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' order by datetime_servlet asc limit 1");
-			               
-			                
-			                if(rs3.next()) {
-			                	
-			                	Calendar c = Calendar.getInstance();
-			                	Calendar now = Calendar.getInstance();
+						  rs3=conn.Consulta("SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet asc limit 1");
+			               if(rs3.next()) {
 			                	long dif = 0;
 			                	if(rs3.getString("timeStamp_mobile").indexOf(".")>0) {
+			                		System.out.println(rs3.getString("timeStamp_mobile").substring(0, rs3.getString("timeStamp_mobile").indexOf(".")));
 			                		c.setTimeInMillis(Long.parseLong(rs3.getString("timeStamp_mobile").substring(0, rs3.getString("timeStamp_mobile").indexOf("."))));
+			                		System.out.println(f3.format(c.getTime()));
 			                	}else {
 			                		c.setTimeInMillis(Long.parseLong(rs3.getString("timeStamp_mobile")));
+			                		System.out.println(f3.format(c.getTime()));
 			                	}
+			                	System.out.println(f3.format(now.getTime()));
 			                		dif= now.getTimeInMillis() - c.getTimeInMillis();
+			                		System.out.println(dif);
 			                	daySeconds=TimeUnit.MILLISECONDS.toSeconds(dif) ;
+			                	System.out.println(daySeconds);
 			                	if(tipo.equals("Inicio_intervalo")) {
 			                		if(rs.getString("timeStamp_mobile").indexOf(".")>0) {
 			                			now.setTimeInMillis(Long.parseLong(rs.getString("timeStamp_mobile").substring(0, rs.getString("timeStamp_mobile").indexOf("."))));
@@ -1561,7 +1626,20 @@ public class Op_Servlet extends HttpServlet {
 											dados_tabela=dados_tabela+"<ons-card >\n"+
 												      "<div class='title' style='display:block'>"+milestone.getString("Milestone")+"<div style='float:right'><img src='img/"+imagem_status+"'></div></div>\n"+
 												      "<div class=\"content\"><div>Site:"+linha_rollout.getString("Site ID")+"</div><div>Planejamento:"+dstart+" - "+ dfim+"</div><div>Inicio Real: "+start+" - Duração(D): "+duracao+"</div><div>Comentários: "+comentarios+"</div><hr><br>"
-												      +"<section style='padding:5px'><table><tr><td style='padding:2px'><ons-button style=\"background:gray;border-radius: 10%;display:table-cell;margin: auto;\"><i class=\"far fa-hand-pointer\"  onclick=\"reg_bySite('"+linha_rollout.getString("Site ID")+"','"+lat+"','"+lng+"','Site','"+p.getEmpresaObj().getEmpresa_id()+"')\"></i></ons-button></td><td style='padding:2px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:25px;margin: auto;\" onclick=\"atualiza_rollout("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','"+milestone.get("status_"+rs.getString(1))+"','"+linha_rollout.getString("Site ID")+"')\">"+bt_texto+"</ons-button></td><td style='padding:2px'><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:25px;margin: auto;\" onclick=\"atualiza_rollout("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','Finalizada','"+linha_rollout.getString("Site ID")+"')\">Completar</ons-button></td></tr></table></section></div>"+		
+												      +"<section style='padding:5px'><table width=\"100%\">"
+													      + "<tr>"
+														      
+														      + "<td style='padding:2px'><a href=\"#\" class=\"myButton\"  onclick=\"atualiza_rollout("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','"+milestone.get("status_"+rs.getString(1))+"','"+linha_rollout.getString("Site ID")+"')\">"+bt_texto+"</a></td>"
+														      + "<td style='padding:2px'><a href=\"#\" class=\"myButton\"  onclick=\"atualiza_rollout("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','Finalizada','"+linha_rollout.getString("Site ID")+"')\">Completar</a></td>"
+													      + "</tr>"
+													      + "<tr>"
+													      + "<td style='padding:2px'><a href=\"#\" class=\"myButton\" ><i class=\"far fa-hand-pointer\"  onclick=\"reg_bySite('"+linha_rollout.getString("Site ID")+"','"+lat+"','"+lat+"','Site','"+p.getEmpresaObj().getEmpresa_id()+"')\"></i></a></td>"
+														      + "<td style='padding:2px'>"
+														      	  + "<a href=\"#\" class=\"myButton\"  style=\"border-radius: 5%;font-size:25px;\" onclick=\"navega('cheklist_select_template');setTimeout(atualiza_checklist_dados("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','"+linha_rollout.getString("Site ID")+"'),1000)\">Checklist</a>"
+														      + "</td>"
+													      + "</tr>"
+													      + "</table>"
+												      + "</section></div>"+		
 												     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
 												    "\n</ons-card>\n";
 										}
@@ -1876,7 +1954,49 @@ public class Op_Servlet extends HttpServlet {
 										}
 									}
 								}
-							}
+							}else if(param2.equals("autoriza_he")) {
+								if(p.getPerfil_funcoes().contains("BancoHHApprover")) {
+									System.out.println("aqui - "+param1);
+									Document autorizacao= new Document();
+									Bson filtro;
+									List<Bson> filtros = new ArrayList<>();
+									filtro=Filters.eq("usuario_solicitante",param1);
+									filtros.add(filtro);
+									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+									filtros.add(filtro);
+									filtro=Filters.eq("usuario_aprovador",p.get_PessoaUsuario());
+									filtros.add(filtro);
+									filtro=Filters.eq("status_autorizacao","PENDENTE");
+									filtros.add(filtro);
+									
+									
+									filtro=Filters.eq("data_dia_he",f2.format(time));
+									filtros.add(filtro);
+									FindIterable<Document> findIterable = cm.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
+									MongoCursor<Document> resultado = findIterable.iterator();
+									if(resultado.hasNext()) {
+										System.out.println("aqui 2- "+param1);
+										while(resultado.hasNext()) {
+											autorizacao=resultado.next();
+											dados_tabela=dados_tabela+"<div class=\"item\">";
+											dados_tabela=dados_tabela+"<a href=\"#\" class=\"item-swipe\"><b>Autorização Prévia de Hora Extra - "+autorizacao.getString("usuario_solicitante")+"</b><br>Local:"+autorizacao.getString("local_hora_extra")+"</a>";
+											dados_tabela=dados_tabela+"<div class=\"item-back\">";
+											dados_tabela=dados_tabela+"<button class=\"action first btn-delete\" onclick=\"reprova('"+autorizacao.getLong("cod_autorizacao")+"')\" type=\"button\">";
+											dados_tabela=dados_tabela+"<i class=\"fa fa-trash\"></i>";
+											dados_tabela=dados_tabela+"</button>";
+											dados_tabela=dados_tabela+"<button class=\"action second btn-check\" onclick=\"aprova_aprovacoes('"+autorizacao.getLong("cod_autorizacao")+"')\" type=\"button\">";
+											dados_tabela=dados_tabela+"<i class=\"fa fa-check\"></i>";
+											dados_tabela=dados_tabela+"</button>";
+											dados_tabela=dados_tabela+"</div>";
+											dados_tabela=dados_tabela+"</div>";
+										}
+									}
+									
+									}
+									cm.fecharConexao();
+									
+								}
+							
 							dados_tabela=dados_tabela+"</div>";
 							resp.setContentType("application/html");  
 							resp.setCharacterEncoding("UTF-8"); 
@@ -1962,6 +2082,39 @@ public class Op_Servlet extends HttpServlet {
 										out.print(dados_tabela);
 									}
 									}
+							}else if(param1.equals("autoriza_he")) {
+								Document autorizacao= new Document();
+								Bson filtro;
+								List<Bson> filtros = new ArrayList<>();
+								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+								filtros.add(filtro);
+								filtro=Filters.eq("status_autorizacao","PENDENTE");
+								filtros.add(filtro);
+								
+								filtro=Filters.eq("data_dia_he",f2.format(time));
+								filtros.add(filtro);
+								List<String> usuarios = cm.ConsultaSimplesDistinct("Autoriza_HE", "usuario_solicitante", filtros);
+								if(usuarios.size()>0){
+									dados_tabela="<ons-select id=\"select_func_aprova\" onchange=\"carrega_lista_aprovacoes(this.value)\"><option value='0'>Selecione um Funcionário</option>";
+									for(int indice=0;indice<usuarios.size();indice++) {
+										
+										dados_tabela=dados_tabela+"<option value='"+usuarios.get(indice)+"'>"+usuarios.get(indice)+"</option>";
+									}
+									dados_tabela=dados_tabela+"</ons-select>";
+									resp.setContentType("application/html");  
+									resp.setCharacterEncoding("UTF-8"); 
+									PrintWriter out = resp.getWriter();
+									out.print(dados_tabela);
+								}else {
+									dados_tabela="<ons-select id=\"select_func_aprova\" onchange=\"carrega_lista_aprovacoes(this.value)\">";
+									dados_tabela=dados_tabela+"<option value='0'>Sem Aprovações Pendentes</option>";
+									dados_tabela=dados_tabela+"</ons-select>";
+									resp.setContentType("application/html");  
+									resp.setCharacterEncoding("UTF-8"); 
+									PrintWriter out = resp.getWriter();
+									out.print(dados_tabela);
+								}
+									
 							}
 							cm.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
@@ -1998,6 +2151,19 @@ public class Op_Servlet extends HttpServlet {
 									PrintWriter out = resp.getWriter();
 									out.print("Requisição Reprovada com Sucesso!");
 								}
+							}else if(param2.equals("autoriza_he")) {
+								Document update = new Document();
+								Document comando_update=new Document();
+								Document condicao = new Document();
+								condicao.append("cod_autorizacao", Long.parseLong(param3));
+								update.append("status_autorizacao", "REPROVADO");
+								update.append("dt_autorizacao", f3.format(time));
+								comando_update.append("$set",update);
+								cm.AtualizaUm("Autoriza_HE", condicao, comando_update);
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print("AUTORIZAÇÃO PRÉVIA REPROVADA!");
 							}
 							cm.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
@@ -2014,7 +2180,7 @@ public class Op_Servlet extends HttpServlet {
 									resp.setContentType("application/html");  
 									resp.setCharacterEncoding("UTF-8"); 
 									PrintWriter out = resp.getWriter();
-									out.print("Requisição Reprovada com Sucesso!");
+									out.print("Requisição Aprovada com Sucesso!");
 								}
 							}else if(param2.equals("ajustePonto")) {
 								query="";
@@ -2074,6 +2240,19 @@ public class Op_Servlet extends HttpServlet {
 								
 								
 							}
+						}else if(param2.equals("autoriza_he")) {
+							Document update = new Document();
+							Document comando_update=new Document();
+							Document condicao = new Document();
+							condicao.append("cod_autorizacao", Long.parseLong(param3));
+							update.append("status_autorizacao", "APROVADO");
+							update.append("dt_autorizacao", f3.format(time));
+							comando_update.append("$set",update);
+							cm.AtualizaUm("Autoriza_HE", condicao, comando_update);
+							resp.setContentType("application/html");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("AUTORIZAÇÃO PRÉVIA APROVADA");
 						}
 							cm.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
@@ -2235,7 +2414,483 @@ public class Op_Servlet extends HttpServlet {
 					Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				
+			}else if(opt.equals("45")) {
+				//System.out.println("Salvando foto de registro");
+				int ultimo=0;
+				String tipo_regitro="";
+				rs=conn.Consulta("select * from registros where usuario='"+p.get_PessoaUsuario()+"' order by sys_contador desc limit 1");
+				if(rs.next()) {
+					ultimo=rs.getInt(1);
+					tipo_regitro=rs.getString("tipo_registro");
+					if(rs.getString("timeStamp_mobile").indexOf(".")>0) {
+                		d.setTimeInMillis(Long.parseLong(rs.getString("timeStamp_mobile").substring(0, rs.getString("timeStamp_mobile").indexOf("."))));
+                	}else {
+                		d.setTimeInMillis(Long.parseLong(rs.getString("timeStamp_mobile")));
+                	}
+				}
+				if (ServletFileUpload.isMultipartContent(req)) {
+					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+					
+					Iterator<FileItem> iter = multiparts.iterator();
+					while (iter.hasNext()) {
+						FileItem item = iter.next();
+						if (item.isFormField()) {
+					       // processFormField(item);
+					    } else {
+					    	//System.out.println(item.getContentType());
+					    	//System.out.println("Item size: " + item.getSize());
+					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+					    	query="";
+							query="insert into registro_foto (id_registro,usuario,timestamp_banco,foto_registro,Empresa,mes,dia,hora,min,ano,tipo_registro,data_dia) values ("+ultimo+",'"+p.get_PessoaUsuario()+"','"+time+"',?,"+p.getEmpresaObj().getEmpresa_id()+","+(d.get(Calendar.MONTH)+1)+","+d.get(Calendar.DAY_OF_MONTH)+","+d.get(Calendar.HOUR_OF_DAY)+","+d.get(Calendar.MINUTE)+","+d.get(Calendar.YEAR)+",'"+tipo_regitro+"','"+f2.format(time)+"')";
+							PreparedStatement statement;
+							 statement = conn.getConnection().prepareStatement(query);
+							 statement.setBlob(1, inputStream2);
+							 int row = statement.executeUpdate();
+						     statement.getConnection().commit();
+						     if (row>0) {
+						        	//System.out.println("Foto de Registro salva com sucesso");
+						        	statement.close();
+						     }
+					    }
+					}
+					}
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("46")) {
+				query="";
+				query="select * from versao_script";
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(rs.getString("versao_script"));
+				}
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("47")) {
+				
+				param2=req.getParameter("local_");
+				param3=req.getParameter("motivo");
+				param4=req.getParameter("lider_");
+				//System.out.println(param4);
+				//System.out.println(p.getPessoaLider());
+				Document autoriza_hh= new Document();
+				autoriza_hh.append("cod_autorizacao", time.getTime());
+				autoriza_hh.append("usuario_solicitante", p.get_PessoaUsuario());
+				autoriza_hh.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+				autoriza_hh.append("usuario_aprovador", p.getPessoaLider());
+				autoriza_hh.append("status_autorizacao", "PENDENTE");
+				autoriza_hh.append("data_dia_he", f2.format(time));
+				autoriza_hh.append("dt_autorizacao", "");
+				autoriza_hh.append("dt_solicitacao", f3.format(time));
+				autoriza_hh.append("local_hora_extra", param2);
+				autoriza_hh.append("motivo_hora_extra", param3);
+				autoriza_hh.append("dt_solicitacao_string", f3.format(time).toString());
+				cm.InserirSimpels("Autoriza_HE", autoriza_hh);
+				
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("48")) {
+				
+				param2=req.getParameter("local");
+				param3=req.getParameter("motivo");
+				param4=req.getParameter("lider");
+				Document autorizacao= new Document();
+				Bson filtro;
+				List<Bson> filtros = new ArrayList<>();
+				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				filtros.add(filtro);
+				filtro=Filters.eq("status_autorizacao","APROVADO");
+				filtros.add(filtro);
+				filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+				filtros.add(filtro);
+				filtro=Filters.eq("data_dia_he",f2.format(time));
+				filtros.add(filtro);
+				FindIterable<Document> findIterable = cm.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
+				autorizacao = findIterable.first();
+				if(autorizacao.getString("status_autorizacao").equals("APROVADO")) {
+					System.out.println("achou um aprovado");
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("OK");
+				}else {
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("NOK");
+				}
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("49")) {
+				
+					rs=conn.Consulta("select distinct id_usuario,nome from usuarios where tipo='Lider' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
+				 
+				if(rs.next()){
+    				rs.beforeFirst();
+    				dados_tabela="<ons-select id=\"select_lider\" class=\"select-input hora_ajuste_class\" onchange='defini_lider(this.value)'>";
+    				dados_tabela=dados_tabela+"<option value=\"\">Escolha um Líder</option>"; 
+    	          while(rs.next()){
+    					 if(p.getPessoaLider().equals(rs.getString("id_usuario"))) {
+    						dados_tabela=dados_tabela+"<option value=\""+rs.getString("id_usuario")+"\" selected >"+rs.getString("nome")+"</option>";
+    					 }else {
+    						 dados_tabela=dados_tabela+"<option value=\""+rs.getString("id_usuario")+"\">"+rs.getString("nome")+"</option>";
+    					 }
+    				}
+    				
+    				dados_tabela=dados_tabela+"</ons-select>";
+				}else {
+					dados_tabela="<ons-select id=\"select_lider\">";
+					dados_tabela=dados_tabela+"<option value=\"\">Líderes nao definidos</option>";
+					dados_tabela=dados_tabela+"</ons-select>";
+				}
+    				
+    			
+				//System.out.println(dados_tabela);
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			
+			}else if(opt.equals("50")) {
+				param1=req.getParameter("lider");
+				query="";
+				query="update usuarios set lider_usuario='"+param1+"' where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'";
+				if(conn.Update_simples(query)) {
+					p.setPessoaLider(param1);
+					session.setAttribute("pessoa",p);
+					resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("OK");
+				}
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			
+			
+			}else if(opt.equals("51")) {
+				
+				query="select * from vistoria_report where empresa="+p.getEmpresaObj().getEmpresa_id();
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					dados_tabela="<ons-select id=\"select_checklist\" class=\"select-input hora_ajuste_class\" onchange='carrega_checklist_campos(this.value)'>";
+    				dados_tabela=dados_tabela+"<option value=\"\">Escolha um Checklist</option>"; 
+    				rs.beforeFirst();
+    	          while(rs.next()){
+    					 dados_tabela=dados_tabela+"<option value=\""+rs.getString("id")+"\">"+rs.getString("relatorio_nome")+"</option>";
+    				}
+    				
+    				dados_tabela=dados_tabela+"</ons-select>";
+    				resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
+				}
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			
+			
+			}else if(opt.equals("52")) {
+				param1=req.getParameter("id_checklist");
+				param2=req.getParameter("recid");
+				param3=req.getParameter("site");
+				param4=req.getParameter("milestone");
+				int id_vistoria_existente=0;
+				int id_vistoria_nova=0;
+				String imagens_auxiliares="";
+				String texto_aux="";
+				String data_aux="";
+				String SubGrupos="";
+				String SubAux="";
+				query="select * from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and status_vistoria='EM_APROVACAO' and executor_checklist='"+p.get_PessoaUsuario()+"' and recid="+param2+" and milestone='"+param4+"' and relatorio_id="+param1;
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("JÁ EXISTE CHECKLIST PARA ESSE RELATÓRIO EM APROVAÇÃO. AGUARDE FIM DE REVISÃO");
+				}else {
+				query="select * from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and status_vistoria='ABERTA' and recid="+param2+" and milestone='"+param4+"' and relatorio_id="+param1;
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					id_vistoria_existente=rs.getInt("Id_vistoria");
+					query="select * from vistoria_campos where relatorio_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by tree_id";
+					//System.out.println(query);
+					rs=conn.Consulta(query);
+					if(rs.next()) {
+						if(rs.getString("field_type").equals("Grupo")) {
+							dados_tabela=dados_tabela+"<ons-card >\n"+
+								      "<div class='title' style='display:block'>"+rs.getString("field_name")+"<div style='float:right'></div></div>\n"+
+								      "<div class=\"content\">";
+							SubGrupos="";
+						}
+						while(rs.next()) {
+							if(rs.getString("field_type").equals("Grupo")) {
+								dados_tabela=dados_tabela+"\n</ons-card>\n";
+								dados_tabela=dados_tabela+"<ons-card >\n"+
+						      "<div class='title' style='display:block'>"+rs.getString("field_name")+"<div style='float:right'></div></div>\n"+
+						      "<div class=\"content\">";
+								SubGrupos="";
+						      
+						}else if(rs.getString("field_type").equals("SubGrupo")){
+							SubGrupos=SubGrupos+rs.getString("field_name")+" > ";
+							SubAux = "<div>"+SubGrupos+"</div><hr>";	
+						}else {
+							if(rs.getString("tipo").equals("Foto")) {
+							rs2=conn.Consulta("select * from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and status_vistoria='ABERTA' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
+							if(rs2.next()) {
+								rs2.beforeFirst();
+								imagens_auxiliares="";
+								while(rs2.next()) {
+									imagens_auxiliares=imagens_auxiliares+"<img src=\"http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=54&id_dados="+rs2.getInt(1)+"\" height=\"80\" width=\"80\" onclick=\"deleta_foto("+rs2.getInt(1)+","+rs2.getInt("relatorio_id")+")\">";
+								}
+							}else {
+								imagens_auxiliares="";
+							}
+							}else if(rs.getString("tipo").equals("Texto")) {
+								rs2=conn.Consulta("select * from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and status_vistoria='ABERTA' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
+								if(rs2.next()) {
+									
+										texto_aux="<ons-input type='text' id='"+rs.getString("field_name")+"_texto' value='"+rs2.getString("campo_valor_str")+"' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\"></ons-input>";
+									
+								}else {
+									texto_aux="<ons-input type='text' id='"+rs.getString("field_name")+"_texto' value='' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\"></ons-input>";
+								}
+							}else if(rs.getString("tipo").equals("Data")) {
+								rs2=conn.Consulta("select * from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and status_vistoria='ABERTA' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
+								if(rs2.next()) {
+									
+										texto_aux="<ons-input type='date' value='"+rs2.getString("campo_valor_str")+"' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\"></ons-input>";
+									
+								}else {
+									texto_aux="<ons-input type='date' value='' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\"></ons-input>";
+								}
+							}
+							dados_tabela=dados_tabela+SubAux;	
+							dados_tabela=dados_tabela+"<div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"</div><hr><br>";
+								if(rs.getString("tipo").equals("Foto")) {
+									dados_tabela=dados_tabela+"<section style='padding:5px'><img src='img/add_foto.png' height=\"80\" width=\"80\" onclick=\"foto_checklist("+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\">"+imagens_auxiliares+"</section></div>";
+								}else if(rs.getString("tipo").equals("Texto")){
+									dados_tabela=dados_tabela+"<section style='padding:5px'>"+texto_aux+"</section></div>";
+									
+								}else if(rs.getString("tipo").equals("Data")){
+									dados_tabela=dados_tabela+"<section style='padding:5px'>"+texto_aux+"</section></div>";
+								}else {
+									dados_tabela=dados_tabela+"<section style='padding:5px'></section></div>";
+								}
+								SubAux="";
+							}
+						     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
+						   }
+						dados_tabela=dados_tabela+"\n</ons-card>\n";
+						dados_tabela=dados_tabela+"<ons-button modifier=\"large\" style=\"background-color:red;\" onclick=\"elimina_checklist("+id_vistoria_existente+","+param1+")\">Eliminar Checklist</ons-button><ons-button modifier=\"large\" onclick=\"submete_checklist("+id_vistoria_existente+")\">Submeter</ons-button>";
+						
+					resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
+					}
+						
+				}else {
+					
+				query="select * from vistoria_campos where relatorio_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by tree_id";
+				//System.out.println(query);
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					if(rs.getString("field_type").equals("Grupo")) {
+						dados_tabela=dados_tabela+"<ons-card >\n"+
+							      "<div class='title' style='display:block'>"+rs.getString("field_name")+"<div style='float:right'></div></div>\n"+
+							      "<div class=\"content\">";
+						SubGrupos="";
+					}
+					while(rs.next()) {
+						if(rs.getString("field_type").equals("Grupo")) {
+							dados_tabela=dados_tabela+"\n</ons-card>\n";
+							dados_tabela=dados_tabela+"<ons-card >\n"+
+					      "<div class='title' style='display:block'>"+rs.getString("field_name")+"<div style='float:right'></div></div>\n"+
+					      "<div class=\"content\">";
+							SubGrupos="";
+					      
+					}else if(rs.getString("field_type").equals("SubGrupo")){
+						SubGrupos=SubGrupos+rs.getString("field_name")+" > ";
+						SubAux = "<div>"+SubGrupos+"</div><hr>";	
+					}else {
+						    dados_tabela=dados_tabela+SubAux;
+							dados_tabela=dados_tabela+"<div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"</div><hr><br>";
+							if(rs.getString("tipo").equals("Foto")) {
+								dados_tabela=dados_tabela+"<section style='padding:5px'><img src='img/add_foto.png' height=\"80\" width=\"80\" onclick=\"foto_checklist("+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\"></section></div>";
+							}else if(rs.getString("tipo").equals("Texto")){
+								dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"text\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\" float></ons-input></section></div>";
+							}else if(rs.getString("tipo").equals("Data")){
+								dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"date\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\" float></ons-input></section></div>";
+							}else {
+								dados_tabela=dados_tabela+"<section style='padding:5px'></section></div>";
+							}
+							SubAux="";
+						}
+					     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
+					   }
+					dados_tabela=dados_tabela+"\n</ons-card>\n";
+					dados_tabela=dados_tabela+"<ons-button modifier=\"large\" onclick=\"submete_checklist(0)\">Submeter</ons-button>";
+					System.out.println(dados_tabela);
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
+				}
+				}}
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			
+				
+			}else if(opt.equals("53")) {
+
+				param1=req.getParameter("idCampo");
+				param2=req.getParameter("CampoNome");
+				param3=req.getParameter("idRelatorio");
+				param4=req.getParameter("idvistoria");
+				param5=req.getParameter("recid");
+				param6=req.getParameter("site");
+				param7=req.getParameter("milestone");
+				//System.out.println("idcampo:"+param1);
+				int id_vistoria=0;
+				if(param4.equals("NOVA")) {
+					rs=conn.Consulta("select id_vistoria from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" order by id_vistoria desc limit 1");
+					if(rs.next()) {
+						id_vistoria=rs.getInt(1)+1;
+					}else {
+						id_vistoria=1;
+					}
+				}else {
+					id_vistoria=Integer.parseInt(param4);
+				}
+				if (ServletFileUpload.isMultipartContent(req)) {
+					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+					
+					Iterator<FileItem> iter = multiparts.iterator();
+					while (iter.hasNext()) {
+						FileItem item = iter.next();
+						if (item.isFormField()) {
+					       //System.out.println(item);
+					    } else {
+					    	//System.out.println(item.getContentType());
+					    	//System.out.println("Item size: " + item.getSize());
+					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+					    	query="";
+							query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_foto,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist) values ("+id_vistoria+",'"+param2+"',"+param1+",?,"+param3+","+p.getEmpresaObj().getEmpresa_id()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Foto','ABERTA','"+p.get_PessoaUsuario()+"')";
+							PreparedStatement statement;
+							 statement = conn.getConnection().prepareStatement(query);
+							 statement.setBlob(1, inputStream2);
+							 int row = statement.executeUpdate();
+						     statement.getConnection().commit();
+						     if (row>0) {
+						        	//System.out.println("Foto de Registro salva com sucesso");
+						        	statement.close();
+						     }
+					    }
+					}
+					}
+				
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("54")) {
+				param1=req.getParameter("id_dados");
+				ServletOutputStream out = resp.getOutputStream();
+				query="";
+				Blob image = null;
+				
+				query="select campo_valor_foto from vistoria_dados where id="+param1+" and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' and status_vistoria<>'CANCELADO'";
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					//System.out.println(" foto encontrada");
+					image=rs.getBlob(1);
+					
+					byte byteArray[]=image.getBytes(1, (int) image.length());
+					resp.setContentType("image/png");
+					out.write(byteArray);
+					out.flush();
+					out.close();
+					//System.out.println(" foto carregada");
+					
+				}
+				cm.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			
+			}else if(opt.equals("55")) {
+				param1=req.getParameter("id_dados");
+				query="update vistoria_dados set status_vistoria='CANCELADO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id="+param1;
+				conn.Alterar(query);
+			}else if(opt.equals("56")) {
+				param1=req.getParameter("idVistoria");
+				query="update vistoria_dados set status_vistoria='CANCELADO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" and owner='"+p.get_PessoaUsuario()+"'";
+				if(conn.Alterar(query)) {
+					resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("Checklist Eliminado com Sucesso!");
+				}
+			}else if(opt.equals("57")) {
+				param1=req.getParameter("idVistoria");
+				query="update vistoria_dados set status_vistoria='EM_APROVACAO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" and owner='"+p.get_PessoaUsuario()+"'";
+				if(conn.Alterar(query)) {
+					resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("Checklist Eliminado com Sucesso!");
+				}
+			}else if(opt.equals("58")) {
+				String param8;
+				param1=req.getParameter("campoID");
+				param2=req.getParameter("campoNome");
+				param3=req.getParameter("relatorioID");
+				param4=req.getParameter("idVistoria");
+				param5=req.getParameter("recid");
+				param6=req.getParameter("site");
+				param7=req.getParameter("milestone");
+				param8=req.getParameter("valor");
+				//System.out.println("idcampo:"+param1);
+				int id_vistoria=0;
+				if(param4.equals("NOVA")) {
+					rs=conn.Consulta("select id_vistoria from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" order by id_vistoria desc limit 1");
+					if(rs.next()) {
+						id_vistoria=rs.getInt(1)+1;
+					}else {
+						id_vistoria=1;
+					}
+					query="";
+					query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_str,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist) values ("+id_vistoria+",'"+param2+"',"+param1+",'"+param8+"',"+param3+","+p.getEmpresaObj().getEmpresa_id()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Texto','ABERTA','"+p.get_PessoaUsuario()+"')";
+					conn.Inserir_simples(query);
+				}else {
+					id_vistoria=Integer.parseInt(param4);
+					query="";
+					query="update vistoria_dados set campo_valor_str='"+param8+"',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+id_vistoria+" and campo='"+param2+"' and relatorio_id="+param3+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" and recid="+param5;
+					if(conn.Alterar2(query)>0){
+						
+					}else {
+						query="";
+						query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_str,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist) values ("+id_vistoria+",'"+param2+"',"+param1+",'"+param8+"',"+param3+","+p.getEmpresaObj().getEmpresa_id()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Texto','ABERTA','"+p.get_PessoaUsuario()+"')";
+						conn.Inserir_simples(query);
+					}
+				}
+				
+				
+				
+				
 			}
+			
 	 }catch (SQLException e) {
 				
 				e.printStackTrace();
@@ -2593,6 +3248,58 @@ public class Op_Servlet extends HttpServlet {
 				return Arrays.asList(-10.00,-10.00);
 		}
 	 }
+	 public void envia_mensagemzelda() {
+		 try {
+			   String jsonResponse;
+			  // System.out.println("controle1");
+			   URL url = new URL("https://onesignal.com/api/v1/notifications");
+			   HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			   con.setUseCaches(false);
+			   con.setDoOutput(true);
+			   con.setDoInput(true);
+			  // System.out.println("controle2");
+			   con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+			   con.setRequestProperty("Authorization", "Basic ZTFhZmE3YTItMDczNC00OWM3LTk0ZTgtMzUzYjg5OTY1ZGFj");
+			   con.setRequestMethod("POST");
+			  // System.out.println("controle3");
+			   String strJsonBody = "{"
+			                      +   "\"app_id\": \"ae9ad50e-520d-436a-b0b0-23aaddedee7b\","
+			                      +   "\"included_segments\": [\"All\"],"
+			                      +   "\"data\": {\"foo\": \"bar\"},"
+			                      +   "\"contents\": {\"en\": \"English Message\"}"
+			                      + "}";
+			         
+			   
+			   //System.out.println("strJsonBody:\n" + strJsonBody);
+
+			   byte[] sendBytes = strJsonBody.getBytes("UTF-8");
+			   con.setFixedLengthStreamingMode(sendBytes.length);
+			  // System.out.println("controle4");
+			   OutputStream outputStream = con.getOutputStream();
+			   outputStream.write(sendBytes);
+
+			   int httpResponse = con.getResponseCode();
+			  // System.out.println("httpResponse: " + httpResponse);
+
+			   if (  httpResponse >= HttpURLConnection.HTTP_OK
+			      && httpResponse < HttpURLConnection.HTTP_BAD_REQUEST) {
+			      Scanner scanner = new Scanner(con.getInputStream(), "UTF-8");
+			      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
+			      scanner.close();
+			   }
+			   else {
+			      Scanner scanner = new Scanner(con.getErrorStream(), "UTF-8");
+			      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
+			      scanner.close();
+			   }
+			   //System.out.println("jsonResponse:\n" + jsonResponse);
+			   
+			} catch(Throwable t) {
+			   t.printStackTrace();
+			}
+
+
+	 }
 	 public void CorrigeCoordenadasTabelaSites() {
 		 int contador=0;
 		 try {
@@ -2609,8 +3316,7 @@ public class Op_Servlet extends HttpServlet {
 			filtros.add(filtro);
 			filtro=Filters.eq("site_ativo","Y");
 			filtros.add(filtro);
-			filtro=Filters.eq("site_uf","MS");
-			filtros.add(filtro);
+			
 			
 			FindIterable<Document> findIterable= conexao.ConsultaCollectioncomFiltrosLista("sites", filtros);
 			MongoCursor<Document> resultado = findIterable.iterator();
@@ -2622,7 +3328,6 @@ public class Op_Servlet extends HttpServlet {
 				condicao.append("Empresa", 5);
 				condicao.append("site_id",site.getString("site_id"));
 				
-				condicao.append("site_uf","MS");
 				coordenadas=verifica_coordenadas(site.getString("site_longitude"), site.getString("site_latitude"));
 				update.append("GEO.geometry.coordinates", coordenadas);
 				

@@ -28,8 +28,10 @@ public class Pessoa {
 	private String relacao_empresa;
 	private String ultimo_login;
 	private String perfil;
+	private String pessoa_tipo;
 	private ResultSet rs;
 	private Expediente expediente;
+	private String lider;
 	
 	 public Pessoa() {
 		 empresaObj=new Empresa();
@@ -47,8 +49,20 @@ public class Pessoa {
 	public void setEmpresaObj(Empresa empresaObj) {
 		this.empresaObj = empresaObj;
 	}
+	public String getPessoaLider() {
+		return lider;
+	}
+	public void setPessoaLider(String lider) {
+		this.lider = lider;
+	}
 	public String getPerfil_funcoes() {
 		return this.perfil_funcoes;
+	}
+	public String get_PessoaTipo(){
+		return this.pessoa_tipo;
+	}
+	public void set_Pessoa_PessoaTipo(String Tipo) {
+		this.pessoa_tipo=Tipo;
 	}
 public void setPerfil_funcoes(Conexao conn) {
 		

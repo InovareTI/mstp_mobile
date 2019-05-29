@@ -17,7 +17,8 @@ public class Conexao
 		try	{
 			
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-			String databaseURL = "jdbc:mysql://node21665-inovareti.jelastic.saveincloud.net/mstpDB?user=mstpmobileDBuser&password=5MaJxWXrLVtKNXvX";
+			//String databaseURL = "jdbc:mysql://node21665-inovareti.jelastic.saveincloud.net/mstpDB?user=mstpmobileDBuser&password=5MaJxWXrLVtKNXvX";
+			String databaseURL = "jdbc:mysql://localhost/mstpDB?user=root&password=r2d2c3p0";
 			Connection c = DriverManager.getConnection(databaseURL);
 			c.setAutoCommit(false);
 			this.connection=c;
@@ -79,6 +80,27 @@ public class Conexao
 			e.printStackTrace();
 			return false;
 		}
+		
+	}
+	
+	public int Alterar2 (String query)
+	{
+		
+		try{
+			Statement stmt = this.connection.createStatement();
+			this.connection.setAutoCommit(false);
+				stmt.executeUpdate(query);
+			this.connection.commit();
+			
+			System.out.println("Update realizado. Linhas afetadas:"+stmt.getUpdateCount());
+			return stmt.getUpdateCount();
+			
+		}
+		catch (SQLException e){
+		    
+		    return 0;
+		}
+		
 		
 	}
 	

@@ -7,13 +7,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,10 +24,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.slf4j.LoggerFactory;
 
-import Classes.Conexao;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
 
+import Classes.Conexao;
+import Classes.ConexaoMongo;
 import Classes.Pessoa;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -78,11 +85,13 @@ public class loginmstp_mobile extends HttpServlet {
 		
 		
 		Conexao con = new Conexao();
-		//ConexaoMongo cm = new ConexaoMongo();
+		ConexaoMongo cm = new ConexaoMongo();
 		String dados;
         dados="";
         String last_login_type="";
         String last_login_time="";
+        String last_login_localidade="";
+        String last_login_localidade_site="";
         MessageDigest md;
         ResultSet rs ;
         ResultSet rs2 ;
@@ -102,6 +111,14 @@ public class loginmstp_mobile extends HttpServlet {
 	        String aparelho=req.getParameter("aparelho_id");
 	        String vinculo_flag=req.getParameter("vinculo_flag");
 	        //System.out.println("senha : "+retornaSenha + "fim da senha.");
+	        if(!versao_mobile.equals("1.64")) {
+	        	resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				dados="[[\"NOVA ATUALIZAÇÃO ENCONTRADA. <a href='#' onclick='atualizaapp()'>Clique aqui</a><script>function atualizaapp() {if(navigator.userAgent.toLowerCase().indexOf('android') > -1){window.location.href= 'market://details?id=com.inovareti.mstp_mobile';}else { $.alert('Desculpe não podemos redireciona-lo automaticamente. Acesse o link direto de download, ou GooGle Play manualmente');}} </script>\"],[\"\"]]";
+				out.print(dados);
+            	con.fecharConexao();
+	        }else {
         	rs= con.Consulta("select * from usuarios where ATIVO='Y' and (id_usuario='"+req.getParameter("user")+"' or email='"+req.getParameter("user")+"')");
         	
         	if (!rs.first()){
@@ -114,9 +131,12 @@ public class loginmstp_mobile extends HttpServlet {
 				out.print(dados);
             	con.fecharConexao();
             	
-        	}
-        	else{
-        		
+        	}else{
+        		String foto_entrada = "";
+                String foto_ini_inter = "";
+                String foto_fim_inter = "";
+                String foto_saida ="";
+                String ponto_office ="";
         		if(!rs.getString("aparelho_id").equals(aparelho) && vinculo_flag.equals("N") && rs.getString("controle_vinculo").equals("true")) {
         			resp.setContentType("application/html");  
        				resp.setCharacterEncoding("UTF-8"); 
@@ -134,6 +154,9 @@ public class loginmstp_mobile extends HttpServlet {
         			if(rs.getString("HASH").equals(retornaSenha)) {
                 session.setAttribute("conexao",con);
                 //session.setAttribute("conexaoMongo",cm);
+                Bson filtro;
+                List<Bson> filtros = new ArrayList<>();
+                
                 Pessoa p=new Pessoa();
                 p.set_PessoaUsuario(rs.getString("id_usuario"));
                 p.setEmpresa(rs.getString("empresa"));
@@ -144,6 +167,8 @@ public class loginmstp_mobile extends HttpServlet {
                 p.set_PessoaName(rs.getString("nome"));
                 p.set_PessoaUltimoLogin(rs.getString("ultimo_acesso"));
                 p.setExpediente(con, Integer.parseInt(rs.getString("empresa")));
+                p.set_Pessoa_PessoaTipo(rs.getString("tipo"));
+                p.setPessoaLider(rs.getString("lider_usuario"));
                 rs2=con.Consulta("select * from usuario_ponto where id_usuario='"+p.get_PessoaUsuario()+"'");
                 if(rs2.next()) {
                 		rs3=con.Consulta("select * from pontos where id_ponto="+rs2.getString("id_ponto"));
@@ -155,13 +180,26 @@ public class loginmstp_mobile extends HttpServlet {
                 			
                 		}
                 }
-                rs3=con.Consulta("SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' order by datetime_servlet desc limit 1");
+                rs3=con.Consulta("SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1");
                 if(rs3.next()) {
                 	last_login_type=rs3.getString("tipo_registro");
                 	last_login_time=rs3.getString("timeStamp_mobile");
+                	last_login_localidade=rs3.getString("local_registro");
+                	last_login_localidade_site=rs3.getString("tipo_local_registro");
                 }else {
             		last_login_type="";
             		last_login_time="";
+            	}
+                Calendar now = Calendar.getInstance();
+                int tempo_expediente=0;
+                System.out.println("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
+                rs3=con.Consulta("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
+                String autorizacao_previa="";
+                if(rs3.next()) {
+                	autorizacao_previa=rs3.getString("autoriza_previa_he");
+                	tempo_expediente=rs3.getInt("tempo_segundos_expediente");
+                }else {
+                	autorizacao_previa="false";
             	}
                 
                 session.setMaxInactiveInterval(14400);
@@ -180,13 +218,13 @@ public class loginmstp_mobile extends HttpServlet {
                 	con.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+req.getParameter("user")+"','NOVO VINCULO DE CELULAR','"+time+"');");
                 }else {}
                 con.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+req.getParameter("user")+"','LOGIN APP','"+time+"');");
-                rs3=con.Consulta("SELECT * FROM registros where usuario='"+req.getParameter("user")+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' order by datetime_servlet asc limit 1");
+                rs3=con.Consulta("SELECT * FROM registros where usuario='"+req.getParameter("user")+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet asc limit 1");
                 long daySeconds=0;
                 
                 if(rs3.next()) {
                 	
                 	Calendar c = Calendar.getInstance();
-                	Calendar now = Calendar.getInstance();
+                	
                 	long dif = 0;
                 	
                 	//System.out.println(rs3.getString("timeStamp_mobile"));
@@ -207,7 +245,21 @@ public class loginmstp_mobile extends HttpServlet {
                 	daySeconds =0;
                 	//System.out.println(daySeconds);
                 }
-                dados="[[\"ok\"],[\""+rs.getString("perfil")+"\"],[\""+rs.getString("ultimo_acesso")+"\"],[\""+p.getEmpresa()+"\"],[\""+p.getEscritorio()+"\"],[\""+p.getEscritorio_lat()+"\"],[\""+p.getEscritorio_lng()+"\"],[\""+last_login_type+"\"],[\""+last_login_time+"\"],["+daySeconds+"],[\""+p.get_PessoaName()+"\"],[\""+p.getEmpresaObj().getNome()+"\"],["+p.getExpediente().getExpdiente_intervalo_minutos()+"]]";
+                rs3=con.Consulta("select * from registro_foto_controle where Empresa="+p.getEmpresaObj().getEmpresa_id());
+                if(rs3.next()) {
+                	foto_entrada = rs3.getString("Entrada");
+                	foto_ini_inter =rs3.getString("Ini_inter");
+                	foto_fim_inter =rs3.getString("Fim_inter");
+                	foto_saida =rs3.getString("Saida");
+                	ponto_office =rs3.getString("ponto_office");
+                }else {
+                	foto_entrada = "false";
+                    foto_ini_inter ="false";
+                    foto_fim_inter ="false";
+                    foto_saida ="false";
+                    ponto_office ="false";
+                }
+                dados="[[\"ok\"],[\""+rs.getString("perfil")+"\"],[\""+rs.getString("ultimo_acesso")+"\"],[\""+p.getEmpresa()+"\"],[\""+p.getEscritorio()+"\"],[\""+p.getEscritorio_lat()+"\"],[\""+p.getEscritorio_lng()+"\"],[\""+last_login_type+"\"],[\""+last_login_time+"\"],["+daySeconds+"],[\""+p.get_PessoaName()+"\"],[\""+p.getEmpresaObj().getNome()+"\"],["+p.getExpediente().getExpdiente_intervalo_minutos()+"],[\""+foto_entrada+"\"],[\""+foto_ini_inter+"\"],[\""+foto_fim_inter+"\"],[\""+foto_saida+"\"],[\""+ponto_office+"\"],[\""+p.getPessoaLider()+"\"],[\""+autorizacao_previa+"\"],[\""+last_login_localidade+"\"],[\""+last_login_localidade_site+"\"],["+tempo_expediente+"],[\""+p.get_PessoaTipo()+"\"]]";
                 rs.close();
                 rs=null;
                 //System.out.println(dados);
@@ -215,6 +267,8 @@ public class loginmstp_mobile extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(dados);
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Login usuario -  "+ p.get_PessoaUsuario()+" | Versao APP:"+versao_mobile+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
         			}else {
         				System.out.println("senha incorreta para - "+req.getParameter("user") +" versao:"+versao_mobile);
            			 rs.close();
@@ -241,7 +295,7 @@ public class loginmstp_mobile extends HttpServlet {
         		}
         		}
         	}
-	        
+	        }
 		} catch (NoSuchAlgorithmException e) {
 			con.fecharConexao();
 			//cm.fecharConexao("Servlet de Login, linha 236");

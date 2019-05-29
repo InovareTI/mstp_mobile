@@ -42,7 +42,8 @@ public class ConexaoMongo {
 	public ConexaoMongo() {
 		
 	
-	String host = "mongodb23525-inovareti.jelastic.saveincloud.net";
+	//String host = "mongodb23525-inovareti.jelastic.saveincloud.net";
+	String host = "localhost:27017";
 	String dbname = "mstpDB";
     String user = "mstpwebDB";
     String password = "Xmqxf9qdCXusVYsH";

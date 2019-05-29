@@ -66,7 +66,7 @@ validRange: {
             document.getElementById('hora_ini_inter').value=aux_ajuste[1];
             document.getElementById('hora_fim_inter').value=aux_ajuste[2];
             document.getElementById('hora_saida').value=aux_ajuste[3];
-            
+            document.getElementById('input_localidade_ajuste').value= geral.ultimo_registro_localidade + "-" + geral.ultimo_registro_localidade_site;
           }
       },
       events: {

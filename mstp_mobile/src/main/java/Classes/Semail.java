@@ -23,7 +23,7 @@ public class Semail {
 	        email.setFrom("mstp_mobile@inovare-ti.com", "MSTP - Notificação por email"); // remetente  
 	        email.setSubject(assunto); // assunto do e-mail  
 	        email.setMsg(mgs); //conteudo do e-mail  
-	        email.setAuthentication("mstp_mobile@inovare-ti.com", "x5w6a!aL");  
+	        email.setAuthentication("mstp@inovare-ti.com", "ci8aaq-k37nyP-7pisicp5\"");  
 	        email.setSmtpPort(587);  
 	        //email.setSSLOnConnect(true); 
 	        email.setStartTLSRequired(true);
