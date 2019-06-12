@@ -10,26 +10,47 @@ function ativa_calendar(){
  }
   var range_start;
   var range_fim;
-  if(geral.mes_calendario<9){
+  
     if(geral.mes_calendario==1){
-     range_start = (d.getFullYear()-1)+"-"+"12"+"-01";
+     range_start = (d.getFullYear()-1)+"-"+"10"+"-01";
      range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
-    }else{
-      range_start = d.getFullYear()+"-"+"0"+(geral.mes_calendario-1)+"-01";
-      range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==2){
+    	 range_start = (d.getFullYear()-1)+"-"+"11"+"-01";
+         range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==3){
+    	 range_start = (d.getFullYear()-1)+"-"+"12"+"-01";
+         range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==4){
+   	 range_start = d.getFullYear()+"-"+"01"+"-01";
+     range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==5){
+      	 range_start = d.getFullYear()+"-"+"02"+"-01";
+         range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==6){
+      	 range_start = d.getFullYear()+"-"+"03"+"-01";
+         range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==7){
+      	 range_start = d.getFullYear()+"-"+"04"+"-01";
+         range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==8){
+      	 range_start = d.getFullYear()+"-"+"05"+"-01";
+         range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==9){
+      	 range_start = d.getFullYear()+"-"+"06"+"-01";
+         range_fim= d.getFullYear()+"-"+"0"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==10){
+      	 range_start = d.getFullYear()+"-"+"07"+"-01";
+         range_fim= d.getFullYear()+"-"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==11){
+      	 range_start = d.getFullYear()+"-"+"08"+"-01";
+         range_fim= d.getFullYear()+"-"+(geral.mes_calendario)+"-"+hoje_aux;
+    }else if(geral.mes_calendario==12){
+      	 range_start = d.getFullYear()+"-"+"09"+"-01";
+         range_fim= d.getFullYear()+"-"+(geral.mes_calendario)+"-"+hoje_aux;
     }
-  }else{
-    if(geral.mes_calendario==9 || geral.mes_calendario==10){
-       range_start = d.getFullYear()+"-"+"0"+(geral.mes_calendario-1)+"-01";
-    }else{
-      range_start = d.getFullYear()+"-"+(geral.mes_calendario-1)+"-01";
-    }
-    if(geral.mes_calendario<12){
-    range_fim= d.getFullYear()+"-"+(geral.mes_calendario)+"-"+hoje_aux;
-    }else{
-      range_fim= d.getFullYear()+"-"+(geral.mes_calendario)+"-"+hoje_aux;
-    }
-  }
+ 
+   
+  
   console.log("inicio:"+range_start);
   console.log("fim:"+range_fim);
   $('#calendar').fullCalendar(

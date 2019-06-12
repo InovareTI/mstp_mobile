@@ -171,7 +171,7 @@ public class Op_Servlet extends HttpServlet {
 				//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de operações opt -  "+ opt);
 				//System.out.println(p.get_PessoaUsuario()+" - Chegou no servlet de Operações do MSTP Mobile - "+f3.format(time)+" Opção:"+opt);
 				if(opt.equals("1")) {
-					System.out.println("Inserindo Registro - "+f3.format(time));
+					//System.out.println("Inserindo Registro - "+f3.format(time));
 					
 					Document registro=new Document();
 					Document geo = new Document();
@@ -186,7 +186,7 @@ public class Op_Servlet extends HttpServlet {
 					param7=req.getParameter("localidade");
 					param6=req.getParameter("_");
 					array_string_aux=param7.split(",");
-					System.out.println("valor do param7 é :" +param7);
+					//System.out.println("valor do param7 é :" +param7);
 					//System.out.println("valor do param8 é :" +param8);
 					//time = Timestamp.valueOf(param3);
 					//System.out.println("hora corrente é " + d.get(Calendar.MINUTE));
@@ -316,7 +316,7 @@ public class Op_Servlet extends HttpServlet {
 							//System.out.println(saida);
 							HH=calcula_hh(entrada,saida);
 							//System.out.println("Total de Horas"+HH[1]);
-							if(Double.parseDouble(HH[1])>0) {
+							if(Double.parseDouble(HH[1])>0.2) {
 								query="SELECT * FROM horas_extras WHERE id_usuario='"+p.get_PessoaUsuario()+"' and DATE_FORMAT(STR_TO_DATE(he_data,'%d/%m/%Y'), '%Y-%m-%d')='"+date_sql.toString()+"' order by he_data desc limit 1";
 		    					rs=conn.Consulta(query);
 		    					if(HH[3].equals("Sábado") || HH[3].equals("Domingo")) {
@@ -329,11 +329,40 @@ public class Op_Servlet extends HttpServlet {
 		    						query2="update horas_extras set he_quantidade="+numberFormat.format(Double.parseDouble(HH[1]))+",horas_noturnas="+numberFormat.format(Double.parseDouble(HH[2]))+",entrada='"+f3.format(entrada_cal.getTime())+"',saida='"+f3.format(saida_cal.getTime())+"',origen='Automatico - MSTP MOBILE',aprovada='N',compensada='N',tipo_HH='"+HH_tipo+"',mes_HH='"+(entrada_cal.get(Calendar.MONTH)+1)+"' where id_usuario='"+p.get_PessoaUsuario()+"' and DATE_FORMAT(STR_TO_DATE(he_data,'%d/%m/%Y'), '%Y-%m-%d')='"+date_sql.toString()+"'";
 		    						conn.Alterar(query2);
 		    					}else {
-		    						insere="";
 		    						
-		    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+		    						rs2=conn.Consulta("select autoriza_previa_he from expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+entrada_cal.get(Calendar.DAY_OF_WEEK));
+		    						if(rs2.next()) {
+		    							if(rs2.getString(1).equals("true")) {
+		    								Bson filtro;
+		    								List<Bson> filtros= new ArrayList<>();
+		    								filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+		    								filtros.add(filtro);
+		    								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+		    								filtros.add(filtro);
+		    								filtro=Filters.eq("data_dia_he",f2.format(time));
+		    								filtros.add(filtro);
+		    								filtro=Filters.eq("status_autorizacao","APROVADO");
+		    								filtros.add(filtro);
+		    								FindIterable<Document> busca_autorizacao = cm.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
+		    								MongoCursor<Document> resultado = busca_autorizacao.iterator();
+		    								if(resultado.hasNext()) {
+		    									insere="";
+		    		    						
+		    		    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+		    		    						
+		    		    						conn.Inserir_simples(insere);
+		    								}else {
+		    									conn.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+req.getParameter("user")+"','Saida SEM Autorização de HE','"+time+"');");
+		    								}
+		    							}else {
+		    								insere="";
+				    						
+				    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+				    						
+				    						conn.Inserir_simples(insere);
+		    							}
+		    						}
 		    						
-		    						conn.Inserir_simples(insere);
 		    					
 		    					}
 							}else if(Double.parseDouble(HH[1])<0){
@@ -350,11 +379,35 @@ public class Op_Servlet extends HttpServlet {
 		    						query2="update horas_extras set he_quantidade="+numberFormat.format(Double.parseDouble(HH[1]))+",horas_noturnas="+numberFormat.format(Double.parseDouble(HH[2]))+",entrada='"+f3.format(entrada_cal.getTime())+"',saida='"+f3.format(saida_cal.getTime())+"',origen='Automatico - MSTP MOBILE',aprovada='Y',compensada='N',tipo_HH='"+HH_tipo+"',mes_HH='"+(entrada_cal.get(Calendar.MONTH)+1)+"' where id_usuario='"+p.get_PessoaUsuario()+"' and DATE_FORMAT(STR_TO_DATE(he_data,'%d/%m/%Y'), '%Y-%m-%d')='"+date_sql.toString()+"'";
 		    						conn.Alterar(query2);
 		    					}else {
-		    						insere="";
+		    						rs2=conn.Consulta("select autoriza_previa_he from expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+entrada_cal.get(Calendar.DAY_OF_WEEK));
+		    						if(rs2.next()) {
+		    							if(rs2.getString(1).equals("true")) {
+		    								Bson filtro;
+		    								List<Bson> filtros= new ArrayList<>();
+		    								filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+		    								filtros.add(filtro);
+		    								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+		    								filtros.add(filtro);
+		    								filtro=Filters.eq("data_dia_he",f2.format(time));
+		    								filtros.add(filtro);
+		    								filtro=Filters.eq("status_autorizacao","APROVADO");
+		    								filtros.add(filtro);
+		    								FindIterable<Document> busca_autorizacao = cm.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
+		    								MongoCursor<Document> resultado = busca_autorizacao.iterator();
+		    								if(resultado.hasNext()) {
+		    									insere="";
+		    		    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+		    		    						conn.Inserir_simples(insere);
+		    								}else {
+		    									conn.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+req.getParameter("user")+"','Saida SEM Autorização de HE','"+time+"');");
+		    								}
+		    							}else {
+		    								insere="";
+				    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+				    						conn.Inserir_simples(insere);
+		    							}
+		    						}
 		    						
-		    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'Y','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+(entrada_cal.get(Calendar.MONTH)+1)+"',"+p.getEmpresaObj().getEmpresa_id()+")";
-		    						
-		    						conn.Inserir_simples(insere);
 		    					
 		    					}
 		    					
@@ -2160,6 +2213,7 @@ public class Op_Servlet extends HttpServlet {
 								update.append("dt_autorizacao", f3.format(time));
 								comando_update.append("$set",update);
 								cm.AtualizaUm("Autoriza_HE", condicao, comando_update);
+								envia_mensagem("De:MSTP \nAUTORIZAÇÃO PARA HORA EXTRA NEGADA.\nData e Hora de Envio: "+f3.format(time),p.get_PessoaUsuario());
 								resp.setContentType("application/html");  
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
@@ -2249,6 +2303,7 @@ public class Op_Servlet extends HttpServlet {
 							update.append("dt_autorizacao", f3.format(time));
 							comando_update.append("$set",update);
 							cm.AtualizaUm("Autoriza_HE", condicao, comando_update);
+							envia_mensagem("De:MSTP \nAUTORIZAÇÃO PARA HORA EXTRA APROVADA\nData e Hora de Envio: "+f3.format(time),p.get_PessoaUsuario());
 							resp.setContentType("application/html");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
@@ -2490,7 +2545,7 @@ public class Op_Servlet extends HttpServlet {
 				autoriza_hh.append("motivo_hora_extra", param3);
 				autoriza_hh.append("dt_solicitacao_string", f3.format(time).toString());
 				cm.InserirSimpels("Autoriza_HE", autoriza_hh);
-				
+				envia_mensagem("De:"+p.get_PessoaUsuario()+"\nSOLICITAÇÃO DE AUTORIZAÇÃO PARA HORA EXTRA\nData e Hora de Envio: "+f3.format(time),p.getPessoaLider());
 				cm.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -2513,7 +2568,7 @@ public class Op_Servlet extends HttpServlet {
 				FindIterable<Document> findIterable = cm.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
 				autorizacao = findIterable.first();
 				if(autorizacao.getString("status_autorizacao").equals("APROVADO")) {
-					System.out.println("achou um aprovado");
+					//System.out.println("achou um aprovado");
 					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -3248,7 +3303,7 @@ public class Op_Servlet extends HttpServlet {
 				return Arrays.asList(-10.00,-10.00);
 		}
 	 }
-	 public void envia_mensagemzelda() {
+	 public void envia_mensagem(String mensagem, String usuario_alvo) {
 		 try {
 			   String jsonResponse;
 			  // System.out.println("controle1");
@@ -3264,9 +3319,9 @@ public class Op_Servlet extends HttpServlet {
 			  // System.out.println("controle3");
 			   String strJsonBody = "{"
 			                      +   "\"app_id\": \"ae9ad50e-520d-436a-b0b0-23aaddedee7b\","
-			                      +   "\"included_segments\": [\"All\"],"
+			                      +   "\"filters\": [{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario_alvo+"\"},{\"operator\": \"OR\"},{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario_alvo.toLowerCase()+"\"},{\"operator\": \"OR\"}, {\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario_alvo.toUpperCase()+"\"}],"
 			                      +   "\"data\": {\"foo\": \"bar\"},"
-			                      +   "\"contents\": {\"en\": \"English Message\"}"
+			                      +   "\"contents\": {\"en\": \""+mensagem+"\"}"
 			                      + "}";
 			         
 			   

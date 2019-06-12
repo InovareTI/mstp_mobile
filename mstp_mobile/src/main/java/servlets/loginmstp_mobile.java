@@ -111,7 +111,7 @@ public class loginmstp_mobile extends HttpServlet {
 	        String aparelho=req.getParameter("aparelho_id");
 	        String vinculo_flag=req.getParameter("vinculo_flag");
 	        //System.out.println("senha : "+retornaSenha + "fim da senha.");
-	        if(!versao_mobile.equals("1.64")) {
+	        if(!versao_mobile.equals("1.65")) {
 	        	resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
