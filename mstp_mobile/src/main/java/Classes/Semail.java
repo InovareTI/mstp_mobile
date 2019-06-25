@@ -1,12 +1,11 @@
 package Classes;
 
-import java.net.MalformedURLException;
 
 import org.apache.commons.mail.*;
 
 public class Semail {
 	
-	public Semail() throws EmailException, MalformedURLException {  
+	public Semail(){  
 	      
 	      //enviaEmailFormatoHtml();  
 	    }  
@@ -15,9 +14,9 @@ public class Semail {
 	     * envia email simples(somente texto) 
 	     * @throws EmailException 
 	     */  
-	    public void enviaEmailSimples(String emailto,String assunto,String mgs) throws EmailException {  
+	    public void enviaEmailSimples(String emailto,String assunto,String mgs) throws EmailException{  
 	          
-	        SimpleEmail email = new SimpleEmail();  
+	    	Email email = new SimpleEmail();  
 	        email.setHostName("smtp.gmail.com"); // o servidor SMTP para envio do e-mail  
 	        email.addTo(emailto); //destinatário  
 	        email.setFrom("mstp_mobile@inovare-ti.com", "MSTP - Notificação por email"); // remetente  
@@ -31,7 +30,7 @@ public class Semail {
 	        email.send();     
 	    }  
 
-	    public void enviaEmailHtml(String emailto,String assunto,String mgs) throws EmailException, MalformedURLException { 
+	    public void enviaEmailHtml(String emailto,String assunto,String mgs) throws EmailException{ 
 	    	
 	    	  HtmlEmail email = new HtmlEmail();
 	    	  email.setHostName("smtp.gmail.com");

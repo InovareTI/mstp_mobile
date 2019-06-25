@@ -192,7 +192,7 @@ public class loginmstp_mobile extends HttpServlet {
             	}
                 Calendar now = Calendar.getInstance();
                 int tempo_expediente=0;
-                System.out.println("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
+                //System.out.println("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
                 rs3=con.Consulta("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
                 String autorizacao_previa="";
                 if(rs3.next()) {

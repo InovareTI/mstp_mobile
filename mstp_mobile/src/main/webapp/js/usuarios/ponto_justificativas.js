@@ -26,7 +26,7 @@ function onCapturePhoto2(fileURI) {
     options.mimeType = "image/png";
     options.params = {"opt":42}; // if we need to send parameters to the server request
     var ft = new FileTransfer();
-    ft.upload(fileURI, encodeURI("http://192.168.0.15:8080/mstp_mobile/Op_Servlet?opt=42"), win, fail, options);
+    ft.upload(fileURI, encodeURI("http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=42"), win, fail, options);
 }
 function onCapturePhoto3(fileURI) {
     var win = function (r) {
@@ -56,7 +56,7 @@ function onCapturePhoto3(fileURI) {
     options.mimeType = "image/png";
     options.params = {"opt":45}; // if we need to send parameters to the server request
     var ft = new FileTransfer();
-    ft.upload(fileURI, encodeURI("http://192.168.0.15:8080/mstp_mobile/Op_Servlet?opt=45"), win, fail, options);
+    ft.upload(fileURI, encodeURI("http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=45"), win, fail, options);
 }
 function foto_justificativa(){
   
@@ -102,7 +102,7 @@ function carrega_justificativas(){
         type: "POST",
         data: {"opt":41
         },		  
-        url: "http://192.168.0.15:8080/mstp_mobile/Op_Servlet",	  
+        url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
         //url: "./Op_Servlet""
         cache: false,
         dataType: "text",
