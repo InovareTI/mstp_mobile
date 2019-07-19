@@ -6,6 +6,14 @@
     <welcome-file>lg.html</welcome-file>
   </welcome-file-list>
   <servlet>
+    <servlet-name>servlets.DiariasServletMobile</servlet-name>
+    <servlet-class>servlets.DiariasServletMobile</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>servlets.DiariasServletMobile</servlet-name>
+    <url-pattern>/DiariasServletMobile</url-pattern>
+  </servlet-mapping>
+  <servlet>
     <servlet-name>servlets.loginmstp_mobile</servlet-name>
     <servlet-class>servlets.loginmstp_mobile</servlet-class>
   </servlet>

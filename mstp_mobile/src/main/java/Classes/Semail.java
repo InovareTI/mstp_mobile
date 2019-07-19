@@ -16,18 +16,18 @@ public class Semail {
 	     */  
 	    public void enviaEmailSimples(String emailto,String assunto,String mgs) throws EmailException{  
 	          
-	    	Email email = new SimpleEmail();  
+	    	SimpleEmail email = new SimpleEmail();  
 	        email.setHostName("smtp.gmail.com"); // o servidor SMTP para envio do e-mail  
 	        email.addTo(emailto); //destinatário  
-	        email.setFrom("mstp_mobile@inovare-ti.com", "MSTP - Notificação por email"); // remetente  
+	        email.setFrom("mstp@inovare-ti.com", "MSTP WEB- Notificação por email"); // remetente  
 	        email.setSubject(assunto); // assunto do e-mail  
 	        email.setMsg(mgs); //conteudo do e-mail  
-	        email.setAuthentication("mstp@inovare-ti.com", "ci8aaq-k37nyP-7pisicp5\"");  
+	        email.setAuthentication("mstp@inovare-ti.com", "ci8aaq-k37nyP-7pisicp5");  
 	        email.setSmtpPort(587);  
 	        //email.setSSLOnConnect(true); 
 	        email.setStartTLSRequired(true);
 	        email.setStartTLSEnabled(true);
-	        email.send();     
+	        email.send();      
 	    }  
 
 	    public void enviaEmailHtml(String emailto,String assunto,String mgs) throws EmailException{ 

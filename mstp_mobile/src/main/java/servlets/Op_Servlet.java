@@ -2,6 +2,7 @@ package servlets;
 
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -33,13 +35,16 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -54,8 +59,6 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.geojson.Point;
-import com.mongodb.client.model.geojson.Position;
 
 import Classes.Conexao;
 import Classes.ConexaoMongo;
@@ -218,10 +221,22 @@ public class Op_Servlet extends HttpServlet {
 						   chave=UUID.randomUUID();
 						}else {
 							query="";
-							query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' order by sys_contador desc limit 1";
+							query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and local_registro<>'PontoAjustado'  and almoco_retorno<>'PTAJ' and tipo_registro in('Entrada','Inicio_Intervalo','Fim_Intervalo','Saída') order by datetime_servlet desc limit 1";
 							rs=mysql.Consulta(query);
 							if(rs.next()) {
-								chave=UUID.fromString(rs.getString("chave_registros"));
+								Calendar ultimo_reg = Calendar.getInstance();
+								ultimo_reg.setTime(format.parse(rs.getString("datetime_servlet")));
+								Calendar agora = Calendar.getInstance();
+								Long horas=TimeUnit.MILLISECONDS.toHours(agora.getTimeInMillis() - ultimo_reg.getTimeInMillis());
+								if(horas<8) {
+									if(!rs.getString("chave_registros").equals("0")){
+										chave=UUID.fromString(rs.getString("chave_registros"));
+									}else {
+										chave=UUID.randomUUID();
+									}
+								}else {
+									chave=UUID.randomUUID();
+								}
 							}else {
 								chave=UUID.randomUUID();
 							}
@@ -426,45 +441,63 @@ public class Op_Servlet extends HttpServlet {
 				}else if(opt.equals("2")) {
 					param1=req.getParameter("func");
 					//System.out.println("funcionario é " + param1);
-					if(param1.equals("todos")) {
-						query="select * from registros order by datetime_servlet desc";
-					}else {
-						query="select * from registros where usuario='"+param1+"' and data_dia='"+f2.format(time)+"' order by datetime_servlet desc";
-					}
-					//System.out.println(query);
-					rs=mysql.Consulta(query);
-					if(rs.next()) {
-						aux=rs.getString("data_dia");
-						
-						dados_tabela="<ons-list>"+"\n";
-						dados_tabela=dados_tabela+"<ons-list-header>"+rs.getString("data_dia")+"</ons-list-header>"+"\n";
-						rs2=mysql.Consulta("select * from usuarios where id_usuario='"+rs.getString("usuario")+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
-						if(rs2.next()) {
-						rs.beforeFirst();
-						while(rs.next()) {
-							if(aux.equals(rs.getString("data_dia"))){
-							
-								dados_tabela=dados_tabela+
-										"<ons-list-item id=\""+rs.getInt(1)+"\">Nome:"+rs2.getString("nome")+" <br>CPF:"+rs2.getString("cpf")+" <br>PIS:"+rs2.getString("pis")+" <br>GPS:"+rs.getString("latitude")+" , "+rs.getString("longitude")+" <br> "+rs.getString("local_registro")+" : "+rs.getString("tipo_local_registro")+"<br>Operadora: "+rs.getString("site_operadora_registro")+"<br>Distancia: "+rs.getInt("distancia")+" km <br> Data e hora: "+rs.getString("datetime_servlet")+"<br>Tipo Registro: "+rs.getString("tipo_registro")+"<br>Empresa:"+p.getEmpresaObj().getNome()+"<br>"+p.getEmpresaObj().getEndereco()+"</ons-list-item>"+"\n";
-								
-								}else {
-									dados_tabela=dados_tabela+"<ons-list-header>"+rs.getString("data_dia")+"</ons-list-header>"+"\n";
-									dados_tabela=dados_tabela+
-											"<ons-list-item id=\""+rs.getInt(1)+"\">"+rs.getString("latitude")+" , "+rs.getString("longitude")+"</ons-list-item>"+"\n";
-									aux=rs.getString("data_dia");
-								}
-								//System.out.println(dados_tabela);
-							}
-						}
-						}
-				      
-						dados_tabela=dados_tabela+"</ons-list>";
 					
-					//System.out.println(dados_tabela);
-					resp.setContentType("application/html");  
-					resp.setCharacterEncoding("UTF-8"); 
-					PrintWriter out = resp.getWriter();
-					out.print(dados_tabela);
+					query="select * from registros where usuario='"+param1+"' and local_registro<>'PontoAjustado'  and almoco_retorno<>'PTAJ' and tipo_registro in('Entrada','Inicio_Intervalo','Fim_Intervalo','Saída') order by datetime_servlet desc limit 1";
+					rs=mysql.Consulta(query);
+					SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					if(rs.next()) {
+						Calendar ultimo_reg = Calendar.getInstance();
+						ultimo_reg.setTime(format.parse(rs.getString("datetime_servlet").substring(0, 19)));
+						Calendar agora = Calendar.getInstance();
+						Long horas=TimeUnit.MILLISECONDS.toHours(agora.getTimeInMillis() - ultimo_reg.getTimeInMillis());
+						if(horas<8) {
+							if(param1.equals("todos")) {
+								query="select * from registros order by datetime_servlet desc";
+							}else {
+								query="select * from registros where usuario='"+param1+"' and chave_registros='"+rs.getString("chave_registros")+"' order by datetime_servlet desc";
+							}
+							rs=mysql.Consulta(query);
+							if(rs.next()) {
+								aux=rs.getString("data_dia");
+								
+								dados_tabela="<ons-list>"+"\n";
+								dados_tabela=dados_tabela+"<ons-list-header>"+rs.getString("data_dia")+"</ons-list-header>"+"\n";
+								rs2=mysql.Consulta("select * from usuarios where id_usuario='"+rs.getString("usuario")+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
+								if(rs2.next()) {
+								rs.beforeFirst();
+								while(rs.next()) {
+									if(aux.equals(rs.getString("data_dia"))){
+									
+										dados_tabela=dados_tabela+
+												"<ons-list-item id=\""+rs.getInt(1)+"\">Nome:"+rs2.getString("nome")+" <br>CPF:"+rs2.getString("cpf")+" <br>PIS:"+rs2.getString("pis")+" <br>GPS:"+rs.getString("latitude")+" , "+rs.getString("longitude")+" <br> "+rs.getString("local_registro")+" : "+rs.getString("tipo_local_registro")+"<br>Operadora: "+rs.getString("site_operadora_registro")+"<br>Distancia: "+rs.getInt("distancia")+" km <br> Data e hora: "+rs.getString("datetime_servlet")+"<br>Tipo Registro: "+rs.getString("tipo_registro")+"<br>Empresa:"+p.getEmpresaObj().getNome()+"<br>"+p.getEmpresaObj().getEndereco()+"</ons-list-item>"+"\n";
+										
+										}else {
+											dados_tabela=dados_tabela+"<ons-list-header>"+rs.getString("data_dia")+"</ons-list-header>"+"\n";
+											dados_tabela=dados_tabela+
+													"<ons-list-item id=\""+rs.getInt(1)+"\">Nome:"+rs2.getString("nome")+" <br>CPF:"+rs2.getString("cpf")+" <br>PIS:"+rs2.getString("pis")+" <br>GPS:"+rs.getString("latitude")+" , "+rs.getString("longitude")+" <br> "+rs.getString("local_registro")+" : "+rs.getString("tipo_local_registro")+"<br>Operadora: "+rs.getString("site_operadora_registro")+"<br>Distancia: "+rs.getInt("distancia")+" km <br> Data e hora: "+rs.getString("datetime_servlet")+"<br>Tipo Registro: "+rs.getString("tipo_registro")+"<br>Empresa:"+p.getEmpresaObj().getNome()+"<br>"+p.getEmpresaObj().getEndereco()+"</ons-list-item>"+"\n";
+											aux=rs.getString("data_dia");
+										}
+										//System.out.println(dados_tabela);
+									}
+								}
+								}
+						      
+								dados_tabela=dados_tabela+"</ons-list>";
+							
+							//System.out.println(dados_tabela);
+							resp.setContentType("application/html");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print(dados_tabela);
+						}else {
+							resp.setContentType("application/html");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("<ons-list></ons-list>");
+						}
+					}
+					
+					
 					mongo.fecharConexao();
     				Timestamp time2 = new Timestamp(System.currentTimeMillis());
     				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -650,9 +683,9 @@ public class Op_Servlet extends HttpServlet {
 					}else if(opt.equals("9")) {
 						//System.out.println("Buscando Funcionários");
 						if(p.get_PessoaPerfil().equals("ADM")) {
-							rs=mysql.Consulta("select distinct usuario from registros");
+							rs=mysql.Consulta("select distinct usuario from registros where empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
 						}else {
-							rs=mysql.Consulta("select distinct usuario from registros where usuario='"+p.get_PessoaUsuario()+"'");
+							rs=mysql.Consulta("select distinct usuario from registros where usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
 						}
 						if(rs.next()){
 		    				rs.beforeFirst();
@@ -1409,7 +1442,7 @@ public class Op_Servlet extends HttpServlet {
 						Calendar c = Calendar.getInstance();
 		                  Calendar now = Calendar.getInstance();
 						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-						query="SELECT *,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' order by datetime_servlet desc limit 1";
+						query="SELECT *,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and local_registro<>'PontoAjustado' and almoco_retorno<>'PTAJ' and tipo_registro in('Entrada','Inicio_Intervalo','Fim_Intervalo','Saída') order by datetime_servlet desc limit 1";
 						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							Calendar ultimo_reg = Calendar.getInstance();
@@ -1417,26 +1450,28 @@ public class Op_Servlet extends HttpServlet {
 							Calendar agora = Calendar.getInstance();
 							horas=TimeUnit.MILLISECONDS.toHours(agora.getTimeInMillis() - ultimo_reg.getTimeInMillis());
 							long dif = 0;
-		                	if(rs.getString("timeStamp_mobile").indexOf(".")>0) {
-		                		//System.out.println(rs3.getString("timeStamp_mobile").substring(0, rs3.getString("timeStamp_mobile").indexOf(".")));
-		                		c.setTimeInMillis(Long.parseLong(rs.getString("timeStamp_mobile").substring(0, rs.getString("timeStamp_mobile").indexOf("."))));
-		                		//System.out.println(f3.format(c.getTime()));
-		                	}else {
-		                		c.setTimeInMillis(Long.parseLong(rs.getString("timeStamp_mobile")));
-		                		//System.out.println(f3.format(c.getTime()));
-		                	}
-		                	//System.out.println(f3.format(now.getTime()));
-		                	dif= now.getTimeInMillis() - c.getTimeInMillis();
-		                	//System.out.println(dif);
-		                	daySeconds=TimeUnit.MILLISECONDS.toSeconds(dif) ;
+		                	
 		                	//System.out.println("Ultimo Registro em Horas:"+horas);
 							if(horas<8) {
-								 query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"'   and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' and chave_registros='"+rs.getString("chave_registros")+"' order by datetime_servlet asc";
+								 query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' and chave_registros='"+rs.getString("chave_registros")+"' order by datetime_servlet asc";
 								 rs2=mysql.Consulta(query);
 								 if(rs2.next()) {
+									 if(rs2.getString("timeStamp_mobile").indexOf(".")>0) {
+					                		//System.out.println(rs3.getString("timeStamp_mobile").substring(0, rs3.getString("timeStamp_mobile").indexOf(".")));
+					                		c.setTimeInMillis(Long.parseLong(rs2.getString("timeStamp_mobile").substring(0, rs2.getString("timeStamp_mobile").indexOf("."))));
+					                		//System.out.println(f3.format(c.getTime()));
+					                	}else {
+					                		c.setTimeInMillis(Long.parseLong(rs2.getString("timeStamp_mobile")));
+					                		//System.out.println(f3.format(c.getTime()));
+					                	}
+					                	//System.out.println(f3.format(now.getTime()));
+					                	dif= now.getTimeInMillis() - c.getTimeInMillis();
+					                	//System.out.println(dif);
+					                	daySeconds=TimeUnit.MILLISECONDS.toSeconds(dif) ;
 									rs2.beforeFirst();
 					                while(rs2.next()) {
 					                	if(rs2.getString("tipo_registro").equals("Entrada")) {
+					                		
 					                		resultado1="[\"Entrada\"],";
 					                	}
 					                	if(rs2.getString("tipo_registro").equals("Inicio_intervalo")) {
@@ -1525,7 +1560,7 @@ public class Op_Servlet extends HttpServlet {
 						  daySeconds=0;
 					  }
 					     resultado=resultado+",["+daySeconds+"]]";*/
-		                 //System.out.println(resultado);
+		                 System.out.println(resultado);
 		                resp.setContentType("application/text");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
@@ -1936,19 +1971,42 @@ public class Op_Servlet extends HttpServlet {
 			    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 			    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("34")){
-							//System.out.println("Salvando foto de perfil");
-							
-							if (ServletFileUpload.isMultipartContent(req)) {
+							System.out.println("Salvando foto de perfil");
+							System.out.println(req.getContentType());
+							Enumeration<String> parametros = req.getParameterNames();
+							while(parametros.hasMoreElements()) {
+								System.out.println(parametros.nextElement());
+							}
+							String imageBase64 = req.getParameter("image64");
+							System.out.println(imageBase64);
+							byte[] imageByte= Base64.decodeBase64(imageBase64);
+							InputStream inputStream2= new ByteArrayInputStream(imageByte);
+							/*if (ServletFileUpload.isMultipartContent(req)) {
 								List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
-								//System.out.println("Multipart size: " + multiparts.size());
+								
 								Iterator<FileItem> iter = multiparts.iterator();
 								while (iter.hasNext()) {
 									FileItem item = iter.next();
 									if (item.isFormField()) {
-								       // processFormField(item);
+								       System.out.println("é form");
 								    } else {
-								    	System.out.println(item.getContentType());
-								    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+								    System.out.println("é part");
+								    }
+								}}*/
+							
+							//ServletInputStream is=req.getInputStream();
+							//System.out.println(is.available());
+							//ByteArrayOutputStream os = null;
+							//byte[] buf = new byte[1000];
+							//for (int nChunk = is.read(buf); nChunk!=-1; nChunk = is.read(buf))
+							//{
+							//    os.write(buf, 0, nChunk);
+							//} 
+							//InputStream inputStream2= new ByteArrayInputStream(os.toByteArray());
+							
+								    	//System.out.println(item.getContentType());
+								    	//System.out.println("Item size: " + item.getSize());
+								    	//InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));	    	
 								    	query="";
 										query="update usuarios set foto_perfil=? where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'";
 										PreparedStatement statement;
@@ -1957,13 +2015,10 @@ public class Op_Servlet extends HttpServlet {
 										 int row = statement.executeUpdate();
 									     statement.getConnection().commit();
 									     if (row>0) {
-									        	//System.out.println("Foto de Perfil salva com sucesso");
+									        	System.out.println("Foto de Perfil salva com sucesso");
 									        	statement.close();
 									     }
-								    }
-								}
-								}
-							
+								    
 							
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
@@ -1979,9 +2034,19 @@ public class Op_Servlet extends HttpServlet {
 							if(rs.next()) {
 								//System.out.println(" foto encontrada");
 								image=rs.getBlob(1);
-								
+								if(image==null) {
+									query="select foto_perfil from usuarios where id_usuario='usuario_foto'";
+									rs2=mysql.Consulta(query);
+									if(rs2.next()) {
+										image = rs2.getBlob(1);
+										 //in = image.getBinaryStream(1,(int)image.length());
+									}
+									
+								}
 								byte byteArray[]=image.getBytes(1, (int) image.length());
+								
 								resp.setContentType("image/png");
+								
 								out.write(byteArray);
 								out.flush();
 								out.close();
@@ -2508,7 +2573,7 @@ public class Op_Servlet extends HttpServlet {
 				filtro = Filters.eq("site_ativo","Y");
 				lista_filtro.add(filtro);
 				
-				System.out.println("funcao 44");
+				//System.out.println("funcao 44");
 				AggregateIterable<Document> aggregateIterable= mongo.ConsultaSitecomFiltrosListaAggregation(param4,param3,lista_filtro);
 					MongoCursor<Document> resultado = aggregateIterable.iterator();
 					if(resultado.hasNext()) {

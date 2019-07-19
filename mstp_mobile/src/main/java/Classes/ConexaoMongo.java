@@ -42,9 +42,8 @@ public class ConexaoMongo {
 	public ConexaoMongo() {
 		
 	
-	String host = "10.100.17.24:27017";
-	
-	//String host = "localhost:27017";
+	//String host = "10.100.17.24:27017";
+	String host = "localhost:27017";
 	String dbname = "mstpDB";
     String user = "mstpwebDB";
     String password = "Xmqxf9qdCXusVYsH";
@@ -141,12 +140,14 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 	}
    public List<Double> verifica_coordenadas(String lng,String lat) {
 		 try {
-			 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
-			 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
-			 return Arrays.asList(f_lng,f_lat);
+			 if(!lng.equals(null) && !lat.equals(null)) {
+				 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+				 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+				 return Arrays.asList(f_lng,f_lat);
+			 }else {
+				 return Arrays.asList(0.0,0.0);
+			 }
 		 }catch (NumberFormatException e) {
-				
-				
 				return Arrays.asList(0.0,0.0);
 		}
 	 }

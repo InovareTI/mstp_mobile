@@ -85,25 +85,27 @@ public class RecuperaSenha extends HttpServlet {
         	System.out.println("Chegou no servlet de Operações do MSTP Mobile - "+f3.format(time));
         	if(opt.equals("1")) {
         		param1=req.getParameter("usuario");
+        		param2=req.getParameter("sdt45");
+        		if(param2.equals("MSTPMOBILEX2")) {
         if(!param1.equals("")){
         	if (!param1.equals(null)){
         		
         		rs=con.Consulta("select * from usuarios where id_usuario='"+param1+"' or email='"+param1+"'");
         		if(rs.next()){
-				md = MessageDigest.getInstance( "SHA-256" );
+				//md = MessageDigest.getInstance( "SHA-256" );
 				String senha_provisoria=RandomStringUtils.random(8,true,true);
-				md.update( senha_provisoria.getBytes());     
-		        BigInteger hash = new BigInteger(1,md.digest() );     
-		        String retornaSenha = hash.toString(16);
-		        if(con.Alterar("update usuarios set hash='"+retornaSenha+"',senha_prov='Y' where id_usuario='"+param1+"' or email='"+param1+"'")){
+				//md.update( senha_provisoria.getBytes());     
+		        //BigInteger hash = new BigInteger(1,md.digest() );     
+		        //String retornaSenha = hash.toString(16);
+		        if(con.Alterar("update usuarios set codigotrocaSenha='"+senha_provisoria+"' where id_usuario='"+param1+"' or email='"+param1+"'")){
 		        
 		        Semail email= new Semail();
-				email.enviaEmailSimples(rs.getString("email"), "MSTP Mobile - Notificação de Solicitação de Senha.","Prezado "+rs.getString("nome")+", \n \n Informamos que sua senha foi reinicializada  no sistema MSTP. \n \n  Operação realizada em: "+time+" \n \n Caso não tenha realizado essa operação solicitamos que entre em contato com o administrador do sistema para sua empresa! \n \n \n Novos dados de Acesso: \n usuario\\email:"+param1+" \n Código para troca de senha:"+senha_provisoria+" \n \n \n Esse é um email Automático gerado pelo sistema. Favor não responder!");
-				//String mensagem_retorno="Troca de senha realizada com sucesso!";
+				email.enviaEmailSimples(rs.getString("email"), "MSTP Mobile - Notificação de Solicitação de Senha.","Prezado "+rs.getString("nome")+", \n \n Informamos que foi solicitado código de troca de senha  no sistema MSTP. \n \n  Operação realizada em: "+time+" \n \n Caso não tenha realizado essa operação solicitamos que entre em contato com o administrador do sistema para sua empresa! \n \n \n Novos dados de Acesso: \n usuario\\email:"+param1+" \n Código para troca de senha:"+senha_provisoria+" \n \n \n Esse é um email Automático gerado pelo sistema. Favor não responder!");
+			
 		        }
-				//resp.sendRedirect("/odontoFlow");
+				
         		}
-        	}
+        	}}
         }}else if(opt.equals("2")) {
         	param1=req.getParameter("codigo");
         	param2=req.getParameter("novasenha");
@@ -113,13 +115,13 @@ public class RecuperaSenha extends HttpServlet {
 			md.update( param1.getBytes());     
 	        BigInteger hash = new BigInteger(1,md.digest() );     
 	        String retornaSenha = hash.toString(16);
-	        rs= con.Consulta("select * from usuarios where ATIVO='Y' and HASH='"+retornaSenha+"' and (id_usuario='"+param4+"' or email='"+param4+"')");
+	        rs= con.Consulta3parametros("select * from usuarios where ATIVO='Y' and codigotrocaSenha=? and (id_usuario=? or email=?)",param1,param4,param4);
 	        if(rs.next()) {
 	        		md = MessageDigest.getInstance( "SHA-256" );
 				md.update( param2.getBytes());     
 		        BigInteger hash2 = new BigInteger(1,md.digest() );     
 		        retornaSenha = hash2.toString(16);
-		        if(con.Alterar("update usuarios set hash='"+retornaSenha+"',senha_prov='N' where id_usuario='"+param4+"' or email='"+param4+"'")){
+		        if(con.Alterar("update usuarios set hash='"+retornaSenha+"',senha_prov='N',codigotrocaSenha='' where id_usuario='"+param4+"' or email='"+param4+"'")){
 			        
 			        Semail email= new Semail();
 					email.enviaEmailSimples(rs.getString("email"), "MSTP Mobile - Notificação de Troca de Senha.","Prezado "+rs.getString("nome")+", \n \n Informamos que sua senha foi alterada no sistema MSTP. \n \n  Operação realizada em: "+time+" \n \n Caso não tenha realizado essa operação solicitamos que entre em contato com o administrador do sistema para sua empresa! \n \n \n  \n \n \n Esse é um email Automático gerado pelo sistema. Favor não responder!");

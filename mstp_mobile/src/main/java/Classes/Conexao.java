@@ -17,8 +17,8 @@ public class Conexao
 		try	{
 			
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-			String databaseURL = "jdbc:mysql://10.100.20.30/mstpDB?user=mstpmobileDBuser&password=5MaJxWXrLVtKNXvX";
-			//String databaseURL = "jdbc:mysql://localhost/mstpDB?user=root&password=r2d2c3p0";
+			//String databaseURL = "jdbc:mysql://10.100.20.30/mstpDB?user=mstpmobileDBuser&password=5MaJxWXrLVtKNXvX";
+			String databaseURL = "jdbc:mysql://localhost/mstpDB?user=root&password=r2d2c3p0";
 			Connection c = DriverManager.getConnection(databaseURL);
 			c.setAutoCommit(false);
 			this.connection=c;
@@ -45,7 +45,38 @@ public class Conexao
 		return this.connection; 
 		//connection;
 	}
-	
+	public ResultSet ConsultaLogin(String query,String param1){
+		PreparedStatement statement;
+		try {
+			statement = this.connection.prepareStatement(query);
+			statement.setString(1, param1);
+			statement.setString(2, param1);
+			
+			return statement.executeQuery();
+		    //statement.getConnection().commit();
+		} catch (SQLException e) {
+			return null;
+			// TODO Auto-generated catch block
+			
+		}
+		 
+	}
+	public ResultSet Consulta3parametros(String query,String param1,String param2,String param3){
+		PreparedStatement statement;
+		try {
+			statement = this.connection.prepareStatement(query);
+			statement.setString(1, param1);
+			statement.setString(2, param2);
+			statement.setString(3, param3);
+			return statement.executeQuery();
+		    //statement.getConnection().commit();
+		} catch (SQLException e) {
+			return null;
+			// TODO Auto-generated catch block
+			
+		}
+		 
+	}
 	public boolean Inserir_simples (String query)
 	{
 		try{

@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -110,7 +111,7 @@ public class loginmstp_mobile extends HttpServlet {
 	        String versao_mobile=req.getParameter("version");
 	        String aparelho=req.getParameter("aparelho_id");
 	        String vinculo_flag=req.getParameter("vinculo_flag");
-	        //System.out.println("senha : "+retornaSenha + "fim da senha.");
+	        
 	        if(!versao_mobile.equals("1.65")) {
 	        	resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
@@ -119,8 +120,9 @@ public class loginmstp_mobile extends HttpServlet {
 				out.print(dados);
             	con.fecharConexao();
 	        }else {
-        	rs= con.Consulta("select * from usuarios where ATIVO='Y' and (id_usuario='"+req.getParameter("user")+"' or email='"+req.getParameter("user")+"')");
-        	
+        	//rs= con.Consulta("select * from usuarios where ATIVO='Y' and (id_usuario='"+req.getParameter("user")+"' or email='"+req.getParameter("user")+"')");
+	        	//System.out.println("Login pegou parametros"+req.getParameter("user"));
+	        	rs= con.ConsultaLogin("select * from usuarios where ATIVO='Y' and (id_usuario=? or email=?)",req.getParameter("user"));
         	if (!rs.first()){
         		System.out.println("Conta Inexistente para usuário - " +req.getParameter("user") + " versao:"+versao_mobile);
         		rs.close();
@@ -138,25 +140,29 @@ public class loginmstp_mobile extends HttpServlet {
                 String foto_saida ="";
                 String ponto_office ="";
         		if(!rs.getString("aparelho_id").equals(aparelho) && vinculo_flag.equals("N") && rs.getString("controle_vinculo").equals("true")) {
+        			System.out.println(req.getParameter("user")+ " - Celular não autorizado ");
         			resp.setContentType("application/html");  
        				resp.setCharacterEncoding("UTF-8"); 
        				PrintWriter out = resp.getWriter();
        				dados="[[\"Celular não autorizado\"],[\"\"]]";
        				out.print(dados);
         		}else if(rs.getString("ferias").equals("Y")){
+        			System.out.println(req.getParameter("user")+ " - Férias acesso nao autorizado ");
         			resp.setContentType("application/html");  
        				resp.setCharacterEncoding("UTF-8"); 
        				PrintWriter out = resp.getWriter();
        				dados="[[\"Usuário em período de Férias - Acesso não permitido\"],[\"\"]]";
        				out.print(dados);
-        		}else {	
+        		}else {
+        			//System.out.println("Verificando validação e senha");
         		if(rs.getString("VALIDADO").equals("Y")) {
         			if(rs.getString("HASH").equals(retornaSenha)) {
+        				System.out.println("Usuário Validado");
                 session.setAttribute("conexao",con);
                 //session.setAttribute("conexaoMongo",cm);
-                Bson filtro;
-                List<Bson> filtros = new ArrayList<>();
-                
+                //Bson filtro;
+                //List<Bson> filtros = new ArrayList<>();
+                //System.out.println("Definindo objeto Usuário");
                 Pessoa p=new Pessoa();
                 p.set_PessoaUsuario(rs.getString("id_usuario"));
                 p.setEmpresa(rs.getString("empresa"));
@@ -169,6 +175,7 @@ public class loginmstp_mobile extends HttpServlet {
                 p.setExpediente(con, Integer.parseInt(rs.getString("empresa")));
                 p.set_Pessoa_PessoaTipo(rs.getString("tipo"));
                 p.setPessoaLider(rs.getString("lider_usuario"));
+                //System.out.println(" objeto Usuário definido");
                 rs2=con.Consulta("select * from usuario_ponto where id_usuario='"+p.get_PessoaUsuario()+"'");
                 if(rs2.next()) {
                 		rs3=con.Consulta("select * from pontos where id_ponto="+rs2.getString("id_ponto"));
@@ -180,17 +187,63 @@ public class loginmstp_mobile extends HttpServlet {
                 			
                 		}
                 }
-                rs3=con.Consulta("SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1");
-                if(rs3.next()) {
-                	last_login_type=rs3.getString("tipo_registro");
-                	last_login_time=rs3.getString("timeStamp_mobile");
-                	last_login_localidade=rs3.getString("local_registro");
-                	last_login_localidade_site=rs3.getString("tipo_local_registro");
-                }else {
-            		last_login_type="";
-            		last_login_time="";
-            	}
+                //System.out.println("Definiu ponto do usuário");
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 Calendar now = Calendar.getInstance();
+                Calendar c = Calendar.getInstance();
+                //rs3=con.Consulta("SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1");
+                String query="select * from registros where usuario='"+p.get_PessoaUsuario()+"' and local_registro<>'PontoAjustado' and tipo_registro in('Entrada','Inicio_Intervalo','Fim_Intervalo','Saída') order by datetime_servlet desc limit 1";
+				rs3=con.Consulta(query);
+				long daySeconds=0;
+				if(rs3.next()) {
+					
+					//c.setTime(format.parse(rs3.getString("datetime_servlet")));
+					if(rs3.getString("timeStamp_mobile").indexOf(".")>0) {
+                 		c.setTimeInMillis(Long.parseLong(rs3.getString("timeStamp_mobile").substring(0, rs3.getString("timeStamp_mobile").indexOf("."))));
+                 	}else {
+                 		c.setTimeInMillis(Long.parseLong(rs3.getString("timeStamp_mobile")));
+                 	}
+					Long horas=TimeUnit.MILLISECONDS.toHours(now.getTimeInMillis() - c.getTimeInMillis());
+					if(horas<8) {
+                
+	                	last_login_type=rs3.getString("tipo_registro");
+	                	last_login_time=rs3.getString("timeStamp_mobile");
+	                	last_login_localidade=rs3.getString("local_registro");
+	                	last_login_localidade_site=rs3.getString("tipo_local_registro");
+	                	
+	                	 rs2=con.Consulta("SELECT * FROM registros where usuario='"+req.getParameter("user")+"' and chave_registros='"+rs3.getString("chave_registros")+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet asc limit 1");
+	                     
+	                     
+	                     if(rs2.next()) {
+	                     	
+	                     	c = Calendar.getInstance();
+	                     	
+	                     	long dif = 0;
+	                     	
+	                     	//System.out.println(rs3.getString("timeStamp_mobile"));
+	                     	//System.out.println(rs3.getString("timeStamp_mobile").substring(0, rs3.getString("timeStamp_mobile").indexOf(".")));
+	                     	if(rs2.getString("timeStamp_mobile").indexOf(".")>0) {
+	                     		c.setTimeInMillis(Long.parseLong(rs2.getString("timeStamp_mobile").substring(0, rs2.getString("timeStamp_mobile").indexOf("."))));
+	                     	}else {
+	                     		c.setTimeInMillis(Long.parseLong(rs2.getString("timeStamp_mobile")));
+	                     	}
+	                     	//System.out.println(f3.format(c.getTime()));
+	                     	//System.out.println(f3.format(now.getTime()));
+	                     	dif= now.getTimeInMillis() - c.getTimeInMillis();
+	                     	daySeconds=TimeUnit.MILLISECONDS.toSeconds(dif) ;
+	                     	//System.out.println((int) (dif / 1000) % 60);
+	                     	
+	                     	//System.out.println(daySeconds);
+	                     }else {
+	                     	daySeconds =0;
+	                     	//System.out.println(daySeconds);
+	                     }
+	                	
+	                }else {
+	            		last_login_type="";
+	            		last_login_time="";
+	            	}
+				}
                 int tempo_expediente=0;
                 //System.out.println("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
                 rs3=con.Consulta("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
@@ -218,33 +271,7 @@ public class loginmstp_mobile extends HttpServlet {
                 	con.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+req.getParameter("user")+"','NOVO VINCULO DE CELULAR','"+time+"');");
                 }else {}
                 con.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+req.getParameter("user")+"','LOGIN APP','"+time+"');");
-                rs3=con.Consulta("SELECT * FROM registros where usuario='"+req.getParameter("user")+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet asc limit 1");
-                long daySeconds=0;
-                
-                if(rs3.next()) {
-                	
-                	Calendar c = Calendar.getInstance();
-                	
-                	long dif = 0;
-                	
-                	//System.out.println(rs3.getString("timeStamp_mobile"));
-                	//System.out.println(rs3.getString("timeStamp_mobile").substring(0, rs3.getString("timeStamp_mobile").indexOf(".")));
-                	if(rs3.getString("timeStamp_mobile").indexOf(".")>0) {
-                		c.setTimeInMillis(Long.parseLong(rs3.getString("timeStamp_mobile").substring(0, rs3.getString("timeStamp_mobile").indexOf("."))));
-                	}else {
-                		c.setTimeInMillis(Long.parseLong(rs3.getString("timeStamp_mobile")));
-                	}
-                	//System.out.println(f3.format(c.getTime()));
-                	//System.out.println(f3.format(now.getTime()));
-                	dif= now.getTimeInMillis() - c.getTimeInMillis();
-                	daySeconds=TimeUnit.MILLISECONDS.toSeconds(dif) ;
-                	//System.out.println((int) (dif / 1000) % 60);
-                	
-                	//System.out.println(daySeconds);
-                }else {
-                	daySeconds =0;
-                	//System.out.println(daySeconds);
-                }
+               
                 rs3=con.Consulta("select * from registro_foto_controle where Empresa="+p.getEmpresaObj().getEmpresa_id());
                 if(rs3.next()) {
                 	foto_entrada = rs3.getString("Entrada");
@@ -296,6 +323,7 @@ public class loginmstp_mobile extends HttpServlet {
         		}
         	}
 	        }
+	        cm.fecharConexao();
 		} catch (NoSuchAlgorithmException e) {
 			con.fecharConexao();
 			//cm.fecharConexao("Servlet de Login, linha 236");
