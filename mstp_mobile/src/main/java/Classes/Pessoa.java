@@ -90,7 +90,7 @@ public void setPerfil_funcoes(Conexao conn) {
 	
 	public boolean VerificaFolga(String usario, String data, Conexao c) {
 		String query;
-		query="select datetime_mobile from registros where data_dia='"+data+"' and usuario='"+usuario+"' and tipo_registro='Folga'";
+		query="select datetime_mobile from registros where data_dia='"+data+"' and usuario='"+usuario+"' and tipo_registro in ('Folga','Licença Médica')";
 		//System.out.println(query);
 		rs=c.Consulta(query);
 		try {

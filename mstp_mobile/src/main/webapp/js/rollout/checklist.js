@@ -7,7 +7,7 @@ function foto_checklist(idCampo,campo_nome,idRelatorio,id_vistoria){
 	var cameraOptions = {
 	        // Some common settings are 20, 50, and 100
 	        quality: 50,
-	        destinationType: 1,
+	        destinationType: 0,
 	        // In this app, dynamically set the picture source, Camera or photo gallery
 	        sourceType: 1,
 	        encodingType: 1,
@@ -16,7 +16,7 @@ function foto_checklist(idCampo,campo_nome,idRelatorio,id_vistoria){
 	        targetHeight:390,
 	        correctOrientation: true  //Corrects Android orientation quirks
 	    };
-	    navigator.camera.getPicture(function(fileURI){
+	    navigator.camera.getPicture(function(imageData){
 
 	        var win = function (r) {
 	            clearCache();
@@ -28,7 +28,7 @@ function foto_checklist(idCampo,campo_nome,idRelatorio,id_vistoria){
 	            if (retries == 0) {
 	                retries ++
 	                setTimeout(function() {
-	                    onCapturePhoto2(fileURI)
+	                    onCapturePhoto3(imageData)
 	                }, 1000)
 	            } else {
 	                retries = 0;
@@ -36,14 +36,25 @@ function foto_checklist(idCampo,campo_nome,idRelatorio,id_vistoria){
 	                $.alert('Problemas no envio da Foto! - onCapturePhoto3');
 	            }
 	        }
-	     
-	        var options = new FileUploadOptions();
-	        options.fileKey = "foto";
-	        options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
-	        options.mimeType = "image/png";
-	        options.params = {}; // if we need to send parameters to the server request
-	        var ft = new FileTransfer();
-	        ft.upload(fileURI, encodeURI("http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=53&idCampo="+idCampo+"&idRelatorio="+idRelatorio+"&CampoNome="+campo_nome+"&recid="+recid+"&milestone="+milestone+"&site="+site+"&idvistoria="+id_vistoria), win, fail, options);
+	        $.ajax({
+	            type: "POST",
+	            data: {"opt":53,
+	                  "image64":imageData,
+	                  "idCampo":idCampo,
+	                  "idRelatorio":idRelatorio,
+	                  "CampoNome":campo_nome,
+	                  "recid":recid,
+	                  "milestone":milestone,
+	                  "site":site,
+	                  "idvistoria":id_vistoria},		  
+	            url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+	            //url: "./POControl_Servlet""
+	            cache: false,
+	            dataType: "text"
+	            
+	    });
+	       
+	        
 	    }, cameraError, cameraOptions);
 	    function cameraError(imageData) {
 	    		$.alert('oops sua imagem nao pode ser capturada.')

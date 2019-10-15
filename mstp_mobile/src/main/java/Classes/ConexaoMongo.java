@@ -182,6 +182,27 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(filtros)).sort(ordenacao).limit(1);
 		return findIterable;
 	}
+	public Document ConsultaSomaCampo(String Collection,List<Bson> filtro,String CampoSoma) {
+		AggregateIterable<Document> resultado=db.getCollection(Collection).aggregate(
+			Arrays.asList(
+		              Aggregates.match(Filters.and(filtro)),
+		              Aggregates.group(CampoSoma,Accumulators.sum("sum","$"+CampoSoma))
+		      )
+		);
+		MongoCursor<Document> resultado2=resultado.iterator();
+		if(resultado2.hasNext()) {
+			return resultado2.next();
+		}else {
+			return null;
+		}
+	}
+	public FindIterable<Document> ConsultaOrdenadaFiltroLista(String Collection,String CampoOrdem,int ordem,List<Bson>filtros){
+		Document ordenacao=new Document();
+		ordenacao.append(CampoOrdem, ordem);
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(filtros)).sort(ordenacao);
+		return findIterable;
+	}
 	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,Integer valor,int empresa){
 		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.eq(campo, valor)));

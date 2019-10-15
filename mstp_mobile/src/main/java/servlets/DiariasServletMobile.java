@@ -130,7 +130,7 @@ public class DiariasServletMobile extends HttpServlet {
 				despesa.setMes_despesa(dataDespesa.get(Calendar.MONTH)+1);
 				despesa.setSemana_despesa(dataDespesa.get(Calendar.WEEK_OF_YEAR));
 				despesa.setData_despesa(request.getParameter("dataDespesa"));
-				
+				despesa.setDt_despesa(dataDespesa);
 				param1=request.getParameter("valorDespesa");
 				//System.out.println(param1);
 				despesa.setValor_despesa(param1);
@@ -186,6 +186,7 @@ public class DiariasServletMobile extends HttpServlet {
 				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 		}else if(opt.equals("4")) {
+			Timestamp time = new Timestamp(System.currentTimeMillis());
 			String dados_tabela;
 			double money; 
 			NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
@@ -201,7 +202,10 @@ public class DiariasServletMobile extends HttpServlet {
 			filtros.add(filtro);
 			filtro=Filters.not(Filters.eq("status_pagamento","PAGO"));
 			filtros.add(filtro);
-			FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("Despesas",filtros);
+			filtro=Filters.not(Filters.eq("statusDespesa", "DELETADO"));
+			filtros.add(filtro);
+			
+			FindIterable<Document> findIterable = mongo.ConsultaOrdenadaFiltroLista("Despesas", "dt_registro", -1, filtros);
 			MongoCursor<Document> resultado = findIterable.iterator();
 			int contador=0;
 			if(resultado.hasNext()) {
@@ -209,6 +213,7 @@ public class DiariasServletMobile extends HttpServlet {
 					despesa=resultado.next();
 					contador=contador+1;
 					dados_tabela=dados_tabela+"[";
+					dados_tabela=dados_tabela+"\""+despesa.get("id_despesa")+"\",";
 					dados_tabela=dados_tabela+"\""+despesa.getString("data_despesa")+"\",";
 					dados_tabela=dados_tabela+"\""+despesa.getString("descricao_despesa")+"\",";
 					dados_tabela=dados_tabela+"\""+number_formatter.format(despesa.getDouble("valor_despesa"))+"\",";
@@ -221,12 +226,141 @@ public class DiariasServletMobile extends HttpServlet {
 				dados_tabela=dados_tabela+"]}";
 				dados_tabela=dados_tabela.replace("replace1", "0");
 			}
-			System.out.println(dados_tabela);
+			//System.out.println(dados_tabela);
 			response.setContentType("application/json");  
 			response.setCharacterEncoding("UTF-8"); 
 			PrintWriter out = response.getWriter();
 			out.print(dados_tabela);
+			mongo.fecharConexao();
 			
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	
+		}else if(opt.equals("5")) {
+			param1=request.getParameter("idDespesa");
+			Timestamp time = new Timestamp(System.currentTimeMillis());
+			Document despesafiltro=new Document();
+			Document despesaupdate=new Document();
+			Document despesacomando=new Document();
+			despesafiltro.append("id_despesa",UUID.fromString(param1));
+			despesafiltro.append("Empresa",p.getEmpresaObj().getEmpresa_id());
+			despesafiltro.append("statusDespesa","EM REVISÃO");
+			despesaupdate.append("statusDespesa", "DELETADO");
+			despesaupdate.append("dt_ultima_mudanca", time);
+			despesacomando.append("$set", despesaupdate);
+			mongo.AtualizaUm("Despesas", despesafiltro, despesacomando);
+			
+			mongo.fecharConexao();
+			response.setContentType("application/json");  
+			response.setCharacterEncoding("UTF-8"); 
+			PrintWriter out = response.getWriter();
+			out.print("Despesa Deletada com Sucesso!");
+			mongo.fecharConexao();
+			
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	
+		}else if(opt.equals("6")) {
+			Timestamp time = new Timestamp(System.currentTimeMillis());
+			try {
+			System.out.println("1");
+			String valores_Aprovados="";
+			String valores_naprovado="";
+			Double valor;
+			NumberFormat formatter = NumberFormat.getCurrencyInstance();
+			List<Bson> filtros = new ArrayList<>();
+			Bson filtro;
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtros.add(filtro);
+			filtro=Filters.eq("status_pagamento","PENDENTE");
+			filtros.add(filtro);
+			filtro=Filters.eq("statusDespesa", "APROVADA");
+			filtros.add(filtro);
+			Document soma_valor=mongo.ConsultaSomaCampo("Despesas",filtros,"valor_despesa");
+			System.out.println(soma_valor.toJson());
+			if(soma_valor.get("sum")!=null) {
+				valor=soma_valor.getDouble("sum");
+				valores_Aprovados = formatter.format(valor);
+				
+			}else {
+				valores_Aprovados = formatter.format(0.0);
+			}
+			System.out.println("2");
+			filtros = new ArrayList<>();
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtros.add(filtro);
+			filtro=Filters.eq("status_pagamento","PENDENTE");
+			filtros.add(filtro);
+			filtro=Filters.not(Filters.eq("statusDespesa", "APROVADA"));
+			filtros.add(filtro);
+			filtro=Filters.not(Filters.eq("statusDespesa", "DELETADO"));
+			filtros.add(filtro);
+			soma_valor=mongo.ConsultaSomaCampo("Despesas",filtros,"valor_despesa");
+			System.out.println(soma_valor.toJson());
+			if(soma_valor.get("sum")!=null) {
+				valor=soma_valor.getDouble("sum");
+				valores_naprovado = formatter.format(valor);
+				
+			}else {
+				valores_naprovado = formatter.format(0.0);
+			}
+			System.out.println("2");
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8"); 
+  		    PrintWriter out = response.getWriter();
+		    out.print("[\"0,00\",\""+valores_naprovado+"\",\""+valores_Aprovados+"\"]");
+		    mongo.fecharConexao();
+			}catch(Exception e) {
+				System.out.println(e.getLocalizedMessage());
+				e.printStackTrace();
+				System.out.println(e.getCause());
+				System.out.println(e.getMessage());
+			}
+		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	
+		}else if(opt.equals("7")) {
+			List<Bson> filtros = new ArrayList<>();
+			Bson filtro;
+			Document categoria;
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtros.add(filtro);
+			FindIterable<Document> findIterable = mongo.ConsultaOrdenadaFiltroLista("CategoriaDespesa", "dt_registro", -1, filtros);
+			MongoCursor<Document> resultado = findIterable.iterator();
+			String dados_tabela="<option value=\"\"></option>\n";
+			if(resultado.hasNext()) {
+				while(resultado.hasNext()) {
+					categoria=resultado.next();
+					dados_tabela=dados_tabela+"<option value=\""+categoria.getString("Categoria")+"\">"+categoria.getString("Categoria")+"</option>\n";
+				}
+			}
+			//System.out.println(dados_tabela);
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8"); 
+  		    PrintWriter out = response.getWriter();
+		    out.print(dados_tabela);
+		    mongo.fecharConexao();
+		}else if(opt.equals("8")) {
+			List<Bson> filtros = new ArrayList<>();
+			Bson filtro;
+			Document categoria;
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtros.add(filtro);
+			FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("Projetos", filtros);
+			MongoCursor<Document> resultado = findIterable.iterator();
+			String dados_tabela="<option value=\"\"></option>\n";
+			if(resultado.hasNext()) {
+				while(resultado.hasNext()) {
+					categoria=resultado.next();
+					dados_tabela=dados_tabela+"<option value=\""+categoria.getString("Projeto")+"\">"+categoria.getString("Projeto")+"</option>\n";
+				}
+			}
+			//System.out.println(dados_tabela);
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8"); 
+  		    PrintWriter out = response.getWriter();
+		    out.print(dados_tabela);
+		    mongo.fecharConexao();
 		}
 		
 		

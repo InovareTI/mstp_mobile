@@ -228,7 +228,7 @@ public class Op_Servlet extends HttpServlet {
 								ultimo_reg.setTime(format.parse(rs.getString("datetime_servlet")));
 								Calendar agora = Calendar.getInstance();
 								Long horas=TimeUnit.MILLISECONDS.toHours(agora.getTimeInMillis() - ultimo_reg.getTimeInMillis());
-								if(horas<8) {
+								if(horas<10) {
 									if(!rs.getString("chave_registros").equals("0")){
 										chave=UUID.fromString(rs.getString("chave_registros"));
 									}else {
@@ -425,6 +425,12 @@ public class Op_Servlet extends HttpServlet {
 		    					
 							}
 							
+							rs=mysql.Consulta("select count(distinct tipo_registro) from registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro in ('Entrada','Saída','Fim_intervalo','Inicio_intervalo')");
+							if(rs.next()) {
+								if(rs.getInt(1)>=4) {
+									envia_mensagem("MSTP Mobile: \n Uau mandou bem. Seus Registros estão corretos! :-)", p.get_PessoaUsuario());
+								}
+							}
 							} catch (ParseException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
@@ -450,7 +456,7 @@ public class Op_Servlet extends HttpServlet {
 						ultimo_reg.setTime(format.parse(rs.getString("datetime_servlet").substring(0, 19)));
 						Calendar agora = Calendar.getInstance();
 						Long horas=TimeUnit.MILLISECONDS.toHours(agora.getTimeInMillis() - ultimo_reg.getTimeInMillis());
-						if(horas<8) {
+						if(horas<10) {
 							if(param1.equals("todos")) {
 								query="select * from registros order by datetime_servlet desc";
 							}else {
@@ -1239,34 +1245,19 @@ public class Op_Servlet extends HttpServlet {
 										cor="#00e600";
 										problema="ok";
 									}else {
-										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Entrada'";
+										query="select count(distinct tipo_registro) from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro in ('Entrada','Inicio_intervalo','Fim_intervalo','Saída') limit 4";
 										rs=mysql.Consulta(query);
 										if(rs.next()) {
-											problema="ok";
+											if(rs.getInt(1)==4) {
+												problema="ok";
+											}else {
+												problema="nok";
+											}
 										}else {
 											problema="nok";
 										}
-										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Inicio_intervalo'";
-										rs=mysql.Consulta(query);
-										if(rs.next()) {
-											problema="ok";
-										}else {
-											problema="nok";
-										}
-										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Fim_intervalo'";
-										rs=mysql.Consulta(query);
-										if(rs.next()) {
-											problema="ok";
-										}else {
-											problema="nok";
-										}
-										query="select datetime_mobile from registros where data_dia='"+f2.format(inicio.getTime())+"' and usuario='"+p.get_PessoaUsuario()+"' and tipo_registro='Saída'";
-										rs=mysql.Consulta(query);
-										if(rs.next()) {
-											problema="ok";
-										}else {
-											problema="nok";
-										}
+										
+										
 										
 									if(problema.equals("ok")) {
 										cor="#00e600";
@@ -1434,13 +1425,13 @@ public class Op_Servlet extends HttpServlet {
 						String resultado="";
 						long daySeconds=0;
 						resultado="[";
-						String resultado1="[],";
-						String resultado2="[],";
-						String resultado3="[],";
-						String resultado4="[],";
+						String resultado1="[\"\"],";
+						String resultado2="[\"\"],";
+						String resultado3="[\"\"],";
+						String resultado4="[\"\"],";
 						long horas = 0;
 						Calendar c = Calendar.getInstance();
-		                  Calendar now = Calendar.getInstance();
+		                Calendar now = Calendar.getInstance();
 						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 						query="SELECT *,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and local_registro<>'PontoAjustado' and almoco_retorno<>'PTAJ' and tipo_registro in('Entrada','Inicio_Intervalo','Fim_Intervalo','Saída') order by datetime_servlet desc limit 1";
 						rs=mysql.Consulta(query);
@@ -1452,7 +1443,7 @@ public class Op_Servlet extends HttpServlet {
 							long dif = 0;
 		                	
 		                	//System.out.println("Ultimo Registro em Horas:"+horas);
-							if(horas<8) {
+							if(horas<10) {
 								 query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' and chave_registros='"+rs.getString("chave_registros")+"' order by datetime_servlet asc";
 								 rs2=mysql.Consulta(query);
 								 if(rs2.next()) {
@@ -1465,6 +1456,7 @@ public class Op_Servlet extends HttpServlet {
 					                		//System.out.println(f3.format(c.getTime()));
 					                	}
 					                	//System.out.println(f3.format(now.getTime()));
+									    now = Calendar.getInstance();
 					                	dif= now.getTimeInMillis() - c.getTimeInMillis();
 					                	//System.out.println(dif);
 					                	daySeconds=TimeUnit.MILLISECONDS.toSeconds(dif) ;
@@ -1972,11 +1964,7 @@ public class Op_Servlet extends HttpServlet {
 			    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("34")){
 							System.out.println("Salvando foto de perfil");
-							System.out.println(req.getContentType());
-							Enumeration<String> parametros = req.getParameterNames();
-							while(parametros.hasMoreElements()) {
-								System.out.println(parametros.nextElement());
-							}
+							
 							String imageBase64 = req.getParameter("image64");
 							System.out.println(imageBase64);
 							byte[] imageByte= Base64.decodeBase64(imageBase64);
@@ -2472,18 +2460,11 @@ public class Op_Servlet extends HttpServlet {
 				if(rs.next()) {
 					ultimo=rs.getInt(1);
 				}
-				if (ServletFileUpload.isMultipartContent(req)) {
-					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
-					
-					Iterator<FileItem> iter = multiparts.iterator();
-					while (iter.hasNext()) {
-						FileItem item = iter.next();
-						if (item.isFormField()) {
-					       // processFormField(item);
-					    } else {
-					    	System.out.println(item.getContentType());
-					    	System.out.println("Item size: " + item.getSize());
-					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+				String imageBase64 = req.getParameter("image64");
+				//System.out.println(imageBase64);
+				byte[] imageByte= Base64.decodeBase64(imageBase64);
+				InputStream inputStream2= new ByteArrayInputStream(imageByte);
+					    	
 					    	query="";
 							query="update ajuste_ponto set foto_justificativa=? where id_ajuste_ponto="+ultimo+" and empresa="+p.getEmpresaObj().getEmpresa_id();
 							PreparedStatement statement;
@@ -2495,9 +2476,8 @@ public class Op_Servlet extends HttpServlet {
 						        	System.out.println("Foto de Justificativa salva com sucesso");
 						        	statement.close();
 						     }
-					    }
-					}
-					}
+					    
+					
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -2602,18 +2582,11 @@ public class Op_Servlet extends HttpServlet {
                 		d.setTimeInMillis(Long.parseLong(rs.getString("timeStamp_mobile")));
                 	}
 				}
-				if (ServletFileUpload.isMultipartContent(req)) {
-					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
-					
-					Iterator<FileItem> iter = multiparts.iterator();
-					while (iter.hasNext()) {
-						FileItem item = iter.next();
-						if (item.isFormField()) {
-					       // processFormField(item);
-					    } else {
-					    	//System.out.println(item.getContentType());
-					    	//System.out.println("Item size: " + item.getSize());
-					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+				String imageBase64 = req.getParameter("image64");
+				//System.out.println(imageBase64);
+				byte[] imageByte= Base64.decodeBase64(imageBase64);
+				InputStream inputStream2= new ByteArrayInputStream(imageByte);
+					    	//InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
 					    	query="";
 							query="insert into registro_foto (id_registro,usuario,timestamp_banco,foto_registro,Empresa,mes,dia,hora,min,ano,tipo_registro,data_dia) values ("+ultimo+",'"+p.get_PessoaUsuario()+"','"+time+"',?,"+p.getEmpresaObj().getEmpresa_id()+","+(d.get(Calendar.MONTH)+1)+","+d.get(Calendar.DAY_OF_MONTH)+","+d.get(Calendar.HOUR_OF_DAY)+","+d.get(Calendar.MINUTE)+","+d.get(Calendar.YEAR)+",'"+tipo_regitro+"','"+f2.format(time)+"')";
 							PreparedStatement statement;
@@ -2625,9 +2598,7 @@ public class Op_Servlet extends HttpServlet {
 						        	//System.out.println("Foto de Registro salva com sucesso");
 						        	statement.close();
 						     }
-					    }
-					}
-					}
+					    
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -2957,32 +2928,23 @@ public class Op_Servlet extends HttpServlet {
 				}else {
 					id_vistoria=Integer.parseInt(param4);
 				}
-				if (ServletFileUpload.isMultipartContent(req)) {
-					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
-					
-					Iterator<FileItem> iter = multiparts.iterator();
-					while (iter.hasNext()) {
-						FileItem item = iter.next();
-						if (item.isFormField()) {
-					       //System.out.println(item);
-					    } else {
-					    	//System.out.println(item.getContentType());
-					    	//System.out.println("Item size: " + item.getSize());
-					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
-					    	query="";
-							query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_foto,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist) values ("+id_vistoria+",'"+param2+"',"+param1+",?,"+param3+","+p.getEmpresaObj().getEmpresa_id()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Foto','ABERTA','"+p.get_PessoaUsuario()+"')";
+				String imageBase64 = req.getParameter("image64");
+				//System.out.println(imageBase64);
+				byte[] imageByte= Base64.decodeBase64(imageBase64);
+				InputStream inputStream2= new ByteArrayInputStream(imageByte);
+				query="";
+							query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_foto,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist,imgstr) values ("+id_vistoria+",'"+param2+"',"+param1+",?,"+param3+","+p.getEmpresaObj().getEmpresa_id()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Foto','ABERTA','"+p.get_PessoaUsuario()+"',?)";
 							PreparedStatement statement;
 							 statement = mysql.getConnection().prepareStatement(query);
 							 statement.setBlob(1, inputStream2);
+							 statement.setString(2, imageBase64);
 							 int row = statement.executeUpdate();
 						     statement.getConnection().commit();
 						     if (row>0) {
 						        	//System.out.println("Foto de Registro salva com sucesso");
 						        	statement.close();
 						     }
-					    }
-					}
-					}
+					    
 				
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
@@ -3090,10 +3052,7 @@ public class Op_Servlet extends HttpServlet {
 	            System.out.println(e1.getCause());
 	            System.out.println(e1.getStackTrace());
 	            e1.printStackTrace();
-	        } catch (FileUploadException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ParseException e) {
+	        }  catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (EmailException e) {

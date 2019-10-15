@@ -2,6 +2,7 @@ package Classes;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.UUID;
 
 import org.bson.Document;
@@ -28,6 +29,7 @@ public class Despesa implements Serializable{
 	private String owner;
 	private String statusDespesa;
 	private String projetoNome;
+	private Calendar Dt_despesa;
 	
 	public Despesa() {
 		
@@ -221,6 +223,7 @@ public class Despesa implements Serializable{
 		despesaDoc.append("mes_despesa", mes_despesa);
 		despesaDoc.append("ano_despesa",ano_despesa);
 		despesaDoc.append("data_despesa", data_despesa);
+		despesaDoc.append("dt_despesa", Dt_despesa.getTime());
 		despesaDoc.append("semana_despesa", semana_despesa);
 		despesaDoc.append("valor_despesa", valor_despesa);
 		despesaDoc.append("status_pagamento", status_pagamento);
@@ -246,6 +249,14 @@ public class Despesa implements Serializable{
 
 	public void setObservacoes(String observacoes) {
 		this.observacoes = observacoes;
+	}
+
+	public Calendar getDt_despesa() {
+		return Dt_despesa;
+	}
+
+	public void setDt_despesa(Calendar dt_despesa) {
+		Dt_despesa = dt_despesa;
 	}
 	
 	
