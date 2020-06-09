@@ -14,6 +14,7 @@ import org.bson.conversions.Bson;
 
 import com.mongodb.Block;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
@@ -42,18 +43,31 @@ public class ConexaoMongo {
 	public ConexaoMongo() {
 		
 	
-	//String host = "10.100.17.24:27017";
+	
 	String host = "localhost:27017";
-	String dbname = "mstpDB";
-    String user = "mstpwebDB";
-    String password = "Xmqxf9qdCXusVYsH";
+	String dbname = "XXX";
+    String user = "XXX";
+    String password = "r2d2c3p0";
+    
 
-    //System.out.println("host: " + host + "\ndbname: " + dbname + "\nuser: " + user + "\npassword: " + password);
-
-     credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
+    /*credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
      mongoClient = new MongoClient(new ServerAddress(host), Arrays.asList(credential));
 
      db = mongoClient.getDatabase(dbname);
+     */
+    credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
+    MongoClientOptions.Builder optionsBuilder = MongoClientOptions.builder();
+
+    optionsBuilder.connectTimeout(60000);
+
+    optionsBuilder.socketTimeout(60000);
+
+    optionsBuilder.serverSelectionTimeout(60000);
+
+    MongoClientOptions options = optionsBuilder.build();
+    mongoClient = new MongoClient(new ServerAddress(host), Arrays.asList(credential),options);
+    
+    db = mongoClient.getDatabase(dbname);
 	}
 	public boolean InserirSimpels(String Collection,Document document) {
 		
@@ -161,6 +175,11 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		FindIterable<Document> findIterable = db.getCollection(Collection).find((Bson) filtros);
 		return findIterable;
 	}
+public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Bson> filtros){
+	
+	FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(filtros));
+	return findIterable;
+}
 	public FindIterable<Document> ConsultaOrdenadaRolloutCompleto(String Collection,int empresa){
 		Document ordenacao=new Document();
 		ordenacao.append("recid", 1);

@@ -119,7 +119,7 @@ public class loginmstp_mobile extends HttpServlet {
 	        String vinculo_flag=req.getParameter("vinculo_flag");
 	        System.out.println("pegou vinculo:"+vinculo_flag);
 	        System.out.println("versao:"+versao_mobile);
-	        if(!versao_mobile.equals("1.66")) {
+	        if(!versao_mobile.equals("1.68")) {
 	        	System.out.println("deu problema de versao");
 	        	resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 

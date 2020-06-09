@@ -16,18 +16,17 @@ function foto_checklist(idCampo,campo_nome,idRelatorio,id_vistoria){
 	        targetHeight:390,
 	        correctOrientation: true  //Corrects Android orientation quirks
 	    };
+	
 	    navigator.camera.getPicture(function(imageData){
 
-	        var win = function (r) {
-	            clearCache();
-	            retries = 0;
-	            carrega_checklist_campos(idRelatorio);
-	        }
+	        
 	     
 	        var fail = function (error) {
+	        	 alert("funcao checklist 3_1");
 	            if (retries == 0) {
 	                retries ++
 	                setTimeout(function() {
+	                	alert("funcao checklist 4_1");
 	                    onCapturePhoto3(imageData)
 	                }, 1000)
 	            } else {
@@ -47,13 +46,16 @@ function foto_checklist(idCampo,campo_nome,idRelatorio,id_vistoria){
 	                  "milestone":milestone,
 	                  "site":site,
 	                  "idvistoria":id_vistoria},		  
-	            url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+	            url: "https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
 	            //url: "./POControl_Servlet""
 	            cache: false,
-	            dataType: "text"
-	            
+	            dataType: "text",
+	            success: SucessoFotoChecklist
 	    });
-	       
+	       function SucessoFotoChecklist(data){
+	    	   carrega_checklist_campos(idRelatorio,1);
+	    	   clearCache();
+	       }
 	        
 	    }, cameraError, cameraOptions);
 	    function cameraError(imageData) {
@@ -63,14 +65,14 @@ function foto_checklist(idCampo,campo_nome,idRelatorio,id_vistoria){
 function elimina_checklist(id,relatorio){
 	$.confirm({
 		title:"Eliminar Checklist Atual!",
-		content:"confirma eliminar checklist atual?",
+		content:"Confirma eliminar checklist atual?",
 		type:"red",
 		buttons:{
 			Confirma:function(){
 				 $.ajax({
 					  type: "POST",
 					  data: {"opt":56,"idVistoria":id},		  
-					  url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+					  url: "https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
 					  //url: "./POControl_Servlet""
 					  cache: false,
 					  dataType: "text",
@@ -78,7 +80,7 @@ function elimina_checklist(id,relatorio){
 				 	});
 				 function onSuccesseliminaChecklist(data){
 					 $.alert(data.toString());
-					 carrega_checklist_campos(relatorio);
+					 carrega_checklist_campos(relatorio,1);
 				 }
 			},
 			Cancelar:function(){
@@ -103,7 +105,7 @@ function atualiza_texto_checklist(valor,campoID,campoNome,relatorioID,idVistoria
 		  		"recid":recid,
 		  		"milestone":milestone,
 		  		"site":site},		  
-		  url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+		  url: "https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
 		  //url: "./POControl_Servlet""
 		  cache: false,
 		  dataType: "text",
@@ -111,11 +113,12 @@ function atualiza_texto_checklist(valor,campoID,campoNome,relatorioID,idVistoria
 	 	});
 	 function onSuccesseliminaChecklist(data){
 		 //$.alert(data.toString());
-		 carrega_checklist_campos(relatorioID);
+		 carrega_checklist_campos(relatorioID,1);
 	 }
 	
 }
 function submete_checklist(idchecklist){
+	var recid = sessionStorage.getItem("checklist_recid_aux");
 	$.confirm({
 		title:"Submeter Checklist",
 		content:"Confirma submeter checklist para aprovação?",
@@ -124,8 +127,8 @@ function submete_checklist(idchecklist){
 			Confirma:function (){
 				$.ajax({
 					  type: "POST",
-					  data: {"opt":57,"idVistoria":idchecklist},		  
-					  url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+					  data: {"opt":57,"idVistoria":idchecklist,"recid":recid},		  
+					  url: "https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
 					  //url: "./POControl_Servlet""
 					  cache: false,
 					  dataType: "text",
@@ -133,7 +136,8 @@ function submete_checklist(idchecklist){
 				 	});
 				 function onSuccesseliminaChecklist(data){
 					 $.alert({
-						 content:"Checklist Enviado para Aprovação!",
+						 title:"Confirmação",
+						 content:data.toString(),
 						 type:"green"
 					 });
 					 navega('Atividades_info');
@@ -147,18 +151,31 @@ function submete_checklist(idchecklist){
 	});
 }
 function deleta_foto(id,relatorio){
-	 $.ajax({
-		  type: "POST",
-		  data: {"opt":55,"id_dados":id},		  
-		  url: "http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
-		  //url: "./POControl_Servlet""
-		  cache: false,
-		  dataType: "text",
-		  success: onSuccessdeletafoto,
-	 	});
-	 function onSuccessdeletafoto(data){
-		 carrega_checklist_campos(relatorio);
-	 }
+	$.confirm({
+		title:"Apagar Foto",
+		content:"Deseja realmente apagar essa foto?",
+		type:"red",
+		buttons:{
+			Confirma:function (){
+				$.ajax({
+					  type: "POST",
+					  data: {"opt":55,"id_dados":id},		  
+					  url: "https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+					  //url: "./POControl_Servlet""
+					  cache: false,
+					  dataType: "text",
+					  success: onSuccessdeletafoto,
+				 	});
+				 function onSuccessdeletafoto(data){
+					 carrega_checklist_campos(relatorio,1);
+				 }
+			},
+			Cancelar:function(){
+				
+			}
+		}
+	});
+	 
 }
 function onCapturePhoto4(fileURI) {
     var win = function (r) {
@@ -186,5 +203,5 @@ function onCapturePhoto4(fileURI) {
     options.mimeType = "image/png";
     options.params = {"opt":53,"idCampo":idcampo,"idRelatorio":idrelatorio}; // if we need to send parameters to the server request
     var ft = new FileTransfer();
-    ft.upload(fileURI, encodeURI("http://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet"), win, fail, options);
+    ft.upload(fileURI, encodeURI("https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet"), win, fail, options);
 }
