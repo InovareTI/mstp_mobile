@@ -218,7 +218,7 @@ public class Despesa implements Serializable{
 		Document despesaDoc = new Document();
 		Timestamp time = new Timestamp(System.currentTimeMillis());
 		despesaDoc.append("id_despesa", id_despesa);
-		despesaDoc.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+		despesaDoc.append("Empresa", p.getEmpresaObj().getEmpresaId());
 		despesaDoc.append("dia_despesa", dia_despesa);
 		despesaDoc.append("mes_despesa", mes_despesa);
 		despesaDoc.append("ano_despesa",ano_despesa);

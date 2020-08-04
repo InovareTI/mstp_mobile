@@ -154,7 +154,7 @@ public class Op_Servlet extends HttpServlet {
 			Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 			Locale.setDefault(locale_ptBR);
 			
-			Conexao mysql = (Conexao) session.getAttribute("conexao");
+			Conexao mysql = new Conexao();
 			ConexaoMongo mongo = new ConexaoMongo();
 			
 			Feriado feriado= new Feriado();
@@ -171,9 +171,9 @@ public class Op_Servlet extends HttpServlet {
 			Timestamp time = new Timestamp(System.currentTimeMillis());
 			java.sql.Date date_sql = new java.sql.Date(Calendar.getInstance().getTime().getTime());
 			opt=req.getParameter("opt");
-			//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de operações opt -  "+ opt);
+			//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de operações opt -  "+ opt);
 			try {
-				//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de operações opt -  "+ opt);
+				//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de operações opt -  "+ opt);
 				//System.out.println(p.get_PessoaUsuario()+" - Chegou no servlet de Operações do MSTP Mobile - "+f3.format(time)+" Opção:"+opt);
 				if(opt.equals("1")) {
 					//System.out.println("Inserindo Registro - "+f3.format(time));
@@ -259,7 +259,7 @@ public class Op_Servlet extends HttpServlet {
 							properties.append("Coordenadas", param1+","+param2);
 							geo.append("properties", properties);
 	    					registro.append("Usuario", p.get_PessoaUsuario());
-	    					registro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+	    					registro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 	    					registro.append("data_dia", time);
 	    					registro.append("data_dia_string", f2.format(mobile_time.getTime()));
 	    					registro.append("datetime_mobile", f3.format(mobile_time.getTime()));
@@ -343,14 +343,14 @@ public class Op_Servlet extends HttpServlet {
 		    						mysql.Alterar(query2);
 		    					}else {
 		    						
-		    						rs2=mysql.Consulta("select autoriza_previa_he from expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+entrada_cal.get(Calendar.DAY_OF_WEEK));
+		    						rs2=mysql.Consulta("select autoriza_previa_he from expediente where empresa="+p.getEmpresaObj().getEmpresaId()+" and dia_expediente="+entrada_cal.get(Calendar.DAY_OF_WEEK));
 		    						if(rs2.next()) {
 		    							if(rs2.getString(1).equals("true")) {
 		    								Bson filtro;
 		    								List<Bson> filtros= new ArrayList<>();
 		    								filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
 		    								filtros.add(filtro);
-		    								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+		    								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 		    								filtros.add(filtro);
 		    								filtro=Filters.eq("data_dia_he",f2.format(time));
 		    								filtros.add(filtro);
@@ -361,7 +361,7 @@ public class Op_Servlet extends HttpServlet {
 		    								if(resultado.hasNext()) {
 		    									insere="";
 		    		    						
-		    		    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+		    		    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresaId()+")";
 		    		    						
 		    		    						mysql.Inserir_simples(insere);
 		    								}else {
@@ -370,7 +370,7 @@ public class Op_Servlet extends HttpServlet {
 		    							}else {
 		    								insere="";
 				    						
-				    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+				    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresaId()+")";
 				    						
 				    						mysql.Inserir_simples(insere);
 		    							}
@@ -392,14 +392,14 @@ public class Op_Servlet extends HttpServlet {
 		    						query2="update horas_extras set he_quantidade="+numberFormat.format(Double.parseDouble(HH[1]))+",horas_noturnas="+numberFormat.format(Double.parseDouble(HH[2]))+",entrada='"+f3.format(entrada_cal.getTime())+"',saida='"+f3.format(saida_cal.getTime())+"',origen='Automatico - MSTP MOBILE',aprovada='Y',compensada='N',tipo_HH='"+HH_tipo+"',mes_HH='"+(entrada_cal.get(Calendar.MONTH)+1)+"' where id_usuario='"+p.get_PessoaUsuario()+"' and DATE_FORMAT(STR_TO_DATE(he_data,'%d/%m/%Y'), '%Y-%m-%d')='"+date_sql.toString()+"'";
 		    						mysql.Alterar(query2);
 		    					}else {
-		    						rs2=mysql.Consulta("select autoriza_previa_he from expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+entrada_cal.get(Calendar.DAY_OF_WEEK));
+		    						rs2=mysql.Consulta("select autoriza_previa_he from expediente where empresa="+p.getEmpresaObj().getEmpresaId()+" and dia_expediente="+entrada_cal.get(Calendar.DAY_OF_WEEK));
 		    						if(rs2.next()) {
 		    							if(rs2.getString(1).equals("true")) {
 		    								Bson filtro;
 		    								List<Bson> filtros= new ArrayList<>();
 		    								filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
 		    								filtros.add(filtro);
-		    								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+		    								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 		    								filtros.add(filtro);
 		    								filtro=Filters.eq("data_dia_he",f2.format(time));
 		    								filtros.add(filtro);
@@ -409,14 +409,14 @@ public class Op_Servlet extends HttpServlet {
 		    								MongoCursor<Document> resultado = busca_autorizacao.iterator();
 		    								if(resultado.hasNext()) {
 		    									insere="";
-		    		    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+		    		    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresaId()+")";
 		    		    						mysql.Inserir_simples(insere);
 		    								}else {
 		    									mysql.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+req.getParameter("user")+"','Saida SEM Autorização de HE','"+time+"');");
 		    								}
 		    							}else {
 		    								insere="";
-				    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+				    						insere="insert into horas_extras (id_usuario,he_data,he_quantidade,entrada,saida,horas_noturnas,aprovada,origen,compensada,dt_add,tipo_HH,mes_HH,empresa) values('"+p.get_PessoaUsuario()+"','"+f2.format(time)+"',"+numberFormat.format(Double.parseDouble(HH[1]))+",'"+f3.format(entrada_cal.getTime())+"','"+f3.format(saida_cal.getTime())+"',"+numberFormat.format(Double.parseDouble(HH[2]))+",'N','Automatico - MSTP MOBILE','N','"+f3.format(time)+"','"+HH_tipo+"','"+entrada_cal.get(Calendar.MONTH)+1+"',"+p.getEmpresaObj().getEmpresaId()+")";
 				    						mysql.Inserir_simples(insere);
 		    							}
 		    						}
@@ -441,7 +441,7 @@ public class Op_Servlet extends HttpServlet {
 	    				
 	    				mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 	    				
 	    				
 	    				
@@ -469,7 +469,7 @@ public class Op_Servlet extends HttpServlet {
 								
 								dados_tabela="<ons-list>"+"\n";
 								dados_tabela=dados_tabela+"<ons-list-header>"+rs.getString("data_dia")+"</ons-list-header>"+"\n";
-								rs2=mysql.Consulta("select * from usuarios where id_usuario='"+rs.getString("usuario")+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
+								rs2=mysql.Consulta("select * from usuarios where id_usuario='"+rs.getString("usuario")+"' and empresa='"+p.getEmpresaObj().getEmpresaId()+"'");
 								if(rs2.next()) {
 								rs.beforeFirst();
 								while(rs.next()) {
@@ -507,7 +507,7 @@ public class Op_Servlet extends HttpServlet {
 					
 					mongo.fecharConexao();
     				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}else if(opt.equals("3")) {
 					//System.out.println("Alterando Expediente");
 					param1=req.getParameter("entrada");
@@ -521,17 +521,17 @@ public class Op_Servlet extends HttpServlet {
 					}
 					mongo.fecharConexao();
     				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("4")) {
 						//System.out.println("Buscando Expediente");
-						query="select * from expediente where empresa="+p.getEmpresaObj().getEmpresa_id();
+						query="select * from expediente where empresa="+p.getEmpresaObj().getEmpresaId();
 						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							dados_tabela="[[\""+rs.getString("entrada")+"\"],[\""+rs.getString("saida")+"\"]";
 							//
 							
 						}
-						query="select entrada,Ini_inter,Fim_inter,saida from registro_foto_controle where empresa="+p.getEmpresaObj().getEmpresa_id();
+						query="select entrada,Ini_inter,Fim_inter,saida from registro_foto_controle where empresa="+p.getEmpresaObj().getEmpresaId();
 						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							dados_tabela=dados_tabela+",[\""+rs.getString(1)+"\"],";
@@ -547,7 +547,7 @@ public class Op_Servlet extends HttpServlet {
 						out.print(dados_tabela);
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("5")) {
 						param1=req.getParameter("tipo");
 						if(param1.equals("reg_distancia")) {
@@ -556,7 +556,7 @@ public class Op_Servlet extends HttpServlet {
 						param2=req.getParameter("banco");
 						param3=req.getParameter("reg_distancia");
 						param4=req.getParameter("vinculo");
-						query="update expediente set hora_extra='"+param1+"',banco_de_hora='"+param2+"',reg_distancia='"+param3+"',vinculo='"+param4+"' where empresa="+p.getEmpresaObj().getEmpresa_id();
+						query="update expediente set hora_extra='"+param1+"',banco_de_hora='"+param2+"',reg_distancia='"+param3+"',vinculo='"+param4+"' where empresa="+p.getEmpresaObj().getEmpresaId();
 						if(mysql.Update_simples(query)) {
 							mysql.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+p.get_PessoaUsuario()+"','ALTEROU PARAMETROS DE HORA EXTRA,BANCO,VINCULO,DISTANCIA','"+time+"');");
 							query="update usuarios set controle_vinculo='"+param4+"' where empresa='"+p.getEmpresa()+"'";
@@ -579,7 +579,7 @@ public class Op_Servlet extends HttpServlet {
 							param2=req.getParameter("iniInter");
 							param3=req.getParameter("fimInter");
 							param4=req.getParameter("saida");
-							query="update registro_foto_controle set Entrada='"+param1+"',Ini_Inter='"+param2+"',Fim_inter='"+param3+"',Saida='"+param4+"',Alter_by='"+p.get_PessoaUsuario()+"',Alter_dt='"+time+"' where Empresa="+p.getEmpresaObj().getEmpresa_id();
+							query="update registro_foto_controle set Entrada='"+param1+"',Ini_Inter='"+param2+"',Fim_inter='"+param3+"',Saida='"+param4+"',Alter_by='"+p.get_PessoaUsuario()+"',Alter_dt='"+time+"' where Empresa="+p.getEmpresaObj().getEmpresaId();
 							if(mysql.Update_simples(query)) {
 								mysql.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+p.get_PessoaUsuario()+"','ALTEROU PARAMETROS DE FOTO PARA REGISTRO','"+time+"');");
 								query="update usuarios set controle_vinculo='"+param4+"' where empresa='"+p.getEmpresa()+"'";
@@ -595,7 +595,7 @@ public class Op_Servlet extends HttpServlet {
 						}else if(param1.equals("autorizacao_hora_extra")) {
 							param1=req.getParameter("autorizacao_controle");
 							
-							query="update expediente set autoriza_previa_he='"+param1+"' where empresa="+p.getEmpresaObj().getEmpresa_id();
+							query="update expediente set autoriza_previa_he='"+param1+"' where empresa="+p.getEmpresaObj().getEmpresaId();
 							if(mysql.Update_simples(query)) {
 								mysql.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+p.get_PessoaUsuario()+"','ALTEROU PARAMETROS DE AUTORIZACAO PREVIA','"+time+"');");
 								
@@ -607,17 +607,17 @@ public class Op_Servlet extends HttpServlet {
 							mongo.fecharConexao();
 						}
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("6")) {
 						//System.out.println("Buscando Expediente");
-						query="select * from expediente where empresa="+p.getEmpresaObj().getEmpresa_id();
+						query="select * from expediente where empresa="+p.getEmpresaObj().getEmpresaId();
 						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							dados_tabela="[["+rs.getString("hora_extra")+"],["+rs.getString("banco_de_hora")+"],["+rs.getString("reg_distancia")+"],["+rs.getString("vinculo")+"],["+rs.getString("autoriza_previa_he")+"]";
 							//System.out.println(dados_tabela);
 							
 						}
-						query="select entrada,Ini_inter,Fim_inter,saida from registro_foto_controle where empresa="+p.getEmpresaObj().getEmpresa_id();
+						query="select entrada,Ini_inter,Fim_inter,saida from registro_foto_controle where empresa="+p.getEmpresaObj().getEmpresaId();
 						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							dados_tabela=dados_tabela+",[\""+rs.getString(1)+"\"],";
@@ -632,7 +632,7 @@ public class Op_Servlet extends HttpServlet {
 						out.print(dados_tabela);
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("7")) {
 						param1=req.getParameter("versao_atual");
 						//System.out.println("Buscando Versao");
@@ -653,7 +653,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("8")) {
 						
 						if(p.get_PessoaPerfil().equals("ADM")) {
@@ -666,7 +666,7 @@ public class Op_Servlet extends HttpServlet {
 						param7=req.getParameter("nome_ponto");
 						
 						insere="";
-						insere="insert into pontos (latitude_ponto,longitude_ponto,nome_ponto,usuario_registro,ativo,empresa) values('"+param1+"','"+param2+"','"+param7+"','"+param6+"','Y',"+p.getEmpresaObj().getEmpresa_id()+")";
+						insere="insert into pontos (latitude_ponto,longitude_ponto,nome_ponto,usuario_registro,ativo,empresa) values('"+param1+"','"+param2+"','"+param7+"','"+param6+"','Y',"+p.getEmpresaObj().getEmpresaId()+")";
 						if(mysql.Inserir_simples(insere)) {
 							resp.setContentType("application/html");  
 							resp.setCharacterEncoding("UTF-8"); 
@@ -686,13 +686,13 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("9")) {
 						//System.out.println("Buscando Funcionários");
 						if(p.get_PessoaPerfil().equals("ADM")) {
-							rs=mysql.Consulta("select distinct usuario from registros where empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
+							rs=mysql.Consulta("select distinct usuario from registros where empresa='"+p.getEmpresaObj().getEmpresaId()+"'");
 						}else {
-							rs=mysql.Consulta("select distinct usuario from registros where usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
+							rs=mysql.Consulta("select distinct usuario from registros where usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresaId()+"'");
 						}
 						if(rs.next()){
 		    				rs.beforeFirst();
@@ -719,17 +719,17 @@ public class Op_Servlet extends HttpServlet {
 						out.print(dados_tabela);
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("10")) {
 						//System.out.println("Encerrando sessão de "+p.get_PessoaUsuario() +" em  - "+f3.format(time));
-						mysql.fecharConexao();
+					
 						session.invalidate();
-						mongo.fecharConexao();
+						
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("11")) {
 						String ponto="";
-						query="select * from pontos where ativo='Y' and empresa="+p.getEmpresaObj().getEmpresa_id();
+						query="select * from pontos where ativo='Y' and empresa="+p.getEmpresaObj().getEmpresaId();
 						param1=req.getParameter("usuario");
 						rs=mysql.Consulta(query);
 						rs2=mysql.Consulta("select id_ponto from usuario_ponto where id_usuario='"+param1+"'");
@@ -756,7 +756,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("12")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -796,7 +796,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("13")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -823,7 +823,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("14")) {
 						param1=req.getParameter("usuario");
 						param2=req.getParameter("ponto");
@@ -855,7 +855,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("15")) {
 						
 						//mongo.criar2dsphereindex();
@@ -869,12 +869,15 @@ public class Op_Servlet extends HttpServlet {
 						//Point refPoint = new Point(new Position(Double.parseDouble(param4), Double.parseDouble(param3)));
 						
 						
-						System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" realizando pesquisa de sites próximas  "+ param2);
+						System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" realizando pesquisa de sites próximas  "+ param2);
+						System.out.println("Sua localização:");
+						System.out.println(param3);
+						System.out.println(param4);
 						FindIterable<Document> findIterable;
 						if(param2.contains(";")) {
 							
 						String[]aux1=param2.split(";");
-						filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+						filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 						lista_filtro.add(filtro);
 						filtro = Filters.eq("site_operadora",aux1[0]);
 						lista_filtro.add(filtro);
@@ -885,7 +888,7 @@ public class Op_Servlet extends HttpServlet {
 						
 						//System.out.println(aux1[0]);
 						//System.out.println(aux1[1]);
-						if(aux1[0].toUpperCase().equals("VIVO") || aux1[0].toUpperCase().equals("TIM") || aux1[0].toUpperCase().equals("OI") || aux1[0].toUpperCase().equals("CLARO") || aux1[0].toUpperCase().equals("NEXTEL")) {
+						if(!aux1[0].toUpperCase().equals("")) {
 							AggregateIterable aggregateIterable= mongo.ConsultaSitecomFiltrosListaAggregation(param4,param3,lista_filtro);
 							MongoCursor<Document> resultado = aggregateIterable.iterator();
 							if(resultado.hasNext()) {
@@ -915,7 +918,7 @@ public class Op_Servlet extends HttpServlet {
 							}
 						}else {
 							lista_filtro.clear();
-							filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+							filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 							lista_filtro.add(filtro);
 							filtro = Filters.regex("site_id", ".*"+aux1[0]+".*");
 							lista_filtro.add(filtro);
@@ -948,7 +951,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						}else {
 							lista_filtro.clear();
-							filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+							filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 							lista_filtro.add(filtro);
 							filtro = Filters.regex("site_id", ".*"+param2.toUpperCase()+".*");
 							lista_filtro.add(filtro);
@@ -982,10 +985,10 @@ public class Op_Servlet extends HttpServlet {
 						
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("16")) {
 						//System.out.println("Carregando escritorios no mapa");
-						rs=mysql.Consulta("Select * from pontos where ativo ='Y' and latitude_ponto<>'' and longitude_ponto<>'' and empresa="+p.getEmpresaObj().getEmpresa_id()+" limit 50");
+						rs=mysql.Consulta("Select * from pontos where ativo ='Y' and latitude_ponto<>'' and longitude_ponto<>'' and empresa="+p.getEmpresaObj().getEmpresaId()+" limit 50");
 						//System.out.println("Carregando sites no mapa2");
 						if(rs.next()){
 							//System.out.println("Carregando sites no mapa3");
@@ -1010,7 +1013,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("17")) {
 
 						param1=req.getParameter("tipo");
@@ -1087,12 +1090,12 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("18")) {
 						//System.out.println("Buscando Operadoras");
 						Bson filtro;
 						List<Bson> lista_filtros= new ArrayList<>();
-						filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+						filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 						lista_filtros.add(filtro);
 						filtro=Filters.eq("site_ativo","Y");
 						lista_filtros.add(filtro);
@@ -1102,7 +1105,7 @@ public class Op_Servlet extends HttpServlet {
 						if(operadora.size()>0) {
 							for(int indice=0;indice<operadora.size();indice++) {
 								lista_filtros= new ArrayList<Bson>();
-								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 								lista_filtros.add(filtro);
 								filtro=Filters.eq("site_ativo","Y");
 								lista_filtros.add(filtro);
@@ -1131,7 +1134,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("19")){
 						double horas;
 						query="select sum(he_quantidade),sum(horas_noturnas) from horas_extras where id_usuario='"+p.get_PessoaUsuario()+"' and aprovada='Y' and compensada='N' and other1=''";
@@ -1146,7 +1149,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("20")){
 						query="";
 						if(p.get_PessoaEmail().contains("BancoHHApprover")) {
@@ -1177,7 +1180,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("21")){
 						query="";
 						query="select id_message,titulo,message from updates_message where usuario='"+p.get_PessoaUsuario()+"' and messagem_lida='N'";
@@ -1202,7 +1205,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("22")){
 						param1=req.getParameter("id_msg");
 						query="UPDATE updates_message set messagem_lida='Y' where id_message='"+param1+"' and usuario='"+p.get_PessoaUsuario()+"'";
@@ -1210,7 +1213,7 @@ public class Op_Servlet extends HttpServlet {
 							
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("23")){
 						String cor="";
 						String problema="ok";
@@ -1284,7 +1287,7 @@ public class Op_Servlet extends HttpServlet {
 							out.print(dados_tabela);
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("24")){
 						
 						query="select SQL_NO_CACHE reg_distancia,now() as agora from expediente where now()=now()";
@@ -1299,7 +1302,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("25")){
 						param1=req.getParameter("data");
 						String mensagem="";
@@ -1371,7 +1374,7 @@ public class Op_Servlet extends HttpServlet {
 							}
 						
 						
-						//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" resultado de busca de registros: "+ mensagem);
+						//System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" resultado de busca de registros: "+ mensagem);
 						//System.out.println(mensagem)
 						resp.setContentType("application/json");  
 						resp.setCharacterEncoding("UTF-8"); 
@@ -1379,7 +1382,7 @@ public class Op_Servlet extends HttpServlet {
 						out.print(mensagem);
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("26")){
 						param1=req.getParameter("entrada");
 						param2=req.getParameter("saida");
@@ -1393,7 +1396,7 @@ public class Op_Servlet extends HttpServlet {
 						//System.out.println(param3);
 						//System.out.println(param4);
 						//System.out.println(param5);
-						query="select * from ajuste_ponto where usuario='"+p.get_PessoaUsuario()+"' and other2='"+param5+"' and aprovada='N' and empresa="+p.getEmpresaObj().getEmpresa_id();
+						query="select * from ajuste_ponto where usuario='"+p.get_PessoaUsuario()+"' and other2='"+param5+"' and aprovada='N' and empresa="+p.getEmpresaObj().getEmpresaId();
 						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							resp.setContentType("application/text");  
@@ -1412,7 +1415,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("27")){
 						resp.setContentType("application/text");  
 						resp.setCharacterEncoding("UTF-8"); 
@@ -1420,7 +1423,7 @@ public class Op_Servlet extends HttpServlet {
 						out.print("Ativo");
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("28")){
 						String tipo="";
 						String resultado="";
@@ -1445,7 +1448,7 @@ public class Op_Servlet extends HttpServlet {
 		                	
 		                	//System.out.println("Ultimo Registro em Horas:"+horas);
 							if(horas<10) {
-								 query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' and chave_registros='"+rs.getString("chave_registros")+"' order by datetime_servlet asc";
+								 query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresaId()+"' and chave_registros='"+rs.getString("chave_registros")+"' order by datetime_servlet asc";
 								 rs2=mysql.Consulta(query);
 								 if(rs2.next()) {
 									 if(rs2.getString("timeStamp_mobile").indexOf(".")>0) {
@@ -1487,28 +1490,28 @@ public class Op_Servlet extends HttpServlet {
 							daySeconds=0;
 						}
 					resultado="["+resultado1+resultado2+resultado3+resultado4+"["+daySeconds+"]]";
-					 /* query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"'   and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' and chave_registros='"+rs.getString("chave_registros")+"' order by datetime_servlet asc";
+					 /* query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"'   and empresa='"+p.getEmpresaObj().getEmpresaId()+"' and chave_registros='"+rs.getString("chave_registros")+"' order by datetime_servlet asc";
 					  rs=mysql.Consulta(query);
 					  if(rs.next()) {
 						  resultado=resultado+"[\"Entrada\"],";
 					  }else {
 						  resultado=resultado+"[],";
 					  }
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Inicio_intervalo' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Inicio_intervalo' and empresa='"+p.getEmpresaObj().getEmpresaId()+"' order by datetime_servlet desc limit 1";
 					  rs=mysql.Consulta(query);
 					  if(rs.next()) {
 						  resultado=resultado+"[\"Inicio_intervalo\"],";
 					  }else {
 						  resultado=resultado+"[],";
 					  }
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Fim_intervalo' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Fim_intervalo' and empresa='"+p.getEmpresaObj().getEmpresaId()+"' order by datetime_servlet desc limit 1";
 					  rs=mysql.Consulta(query);
 					  if(rs.next()) {
 						  resultado=resultado+"[\"Fim_intervalo\"],";
 					  }else {
 						  resultado=resultado+"[],";
 					  }
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Saída' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Saída' and empresa='"+p.getEmpresaObj().getEmpresaId()+"' order by datetime_servlet desc limit 1";
 					  rs=mysql.Consulta(query);
 					  if(rs.next()) {
 						  resultado=resultado+"[\"Saída\"]";
@@ -1516,11 +1519,11 @@ public class Op_Servlet extends HttpServlet {
 						  resultado=resultado+"[]";
 					  }
 					  
-					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet desc limit 1";
+					  query="SELECT tipo_registro,timeStamp_mobile,now() FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and empresa='"+p.getEmpresaObj().getEmpresaId()+"' order by datetime_servlet desc limit 1";
 					  rs=mysql.Consulta(query);
 					  if(rs.next()) {
 						  tipo=rs.getString("tipo_registro");
-						  rs3=mysql.Consulta("SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet asc limit 1");
+						  rs3=mysql.Consulta("SELECT * FROM registros where usuario='"+p.get_PessoaUsuario()+"' and data_dia='"+f2.format(time)+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresaId()+"' order by datetime_servlet asc limit 1");
 			               if(rs3.next()) {
 			                	long dif = 0;
 			                	if(rs3.getString("timeStamp_mobile").indexOf(".")>0) {
@@ -1560,7 +1563,7 @@ public class Op_Servlet extends HttpServlet {
 						out.print(resultado);
 						mongo.fecharConexao();
 	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("29")){
 						param1=req.getParameter("nome");
 						param2=req.getParameter("id_");
@@ -1573,30 +1576,137 @@ public class Op_Servlet extends HttpServlet {
 						param6=param6.replaceAll(",", ".");
 						param5=param5.replaceAll(" ", "");
 						param5=param5.replaceAll(",", ".");
-						
-						query="select * from sites where site_id='"+param2+"'";
-						rs=mysql.Consulta(query);
-						if(rs.next()) {
+						List<Bson> filtros = new ArrayList<>();
+						Bson filtro;
+						filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
+						filtros.add(filtro);
+						filtro=Filters.eq("site_id",param2);
+						filtros.add(filtro);
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("sites", filtros);
+						if(findIterable.iterator().hasNext()) {
 							resp.setContentType("application/text");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print("Site já existente. Solicitação abortada");
 						}else {
-						query="insert into site_aprova (site_nome,site_id,site_operadora,site_estado,dt_pedido,usuario_pedido,aprovado,empresa,site_lat,site_lng) values ('"+param1+"','"+param2+"','"+param3+"','"+param4+"','"+f3.format(time)+"','"+p.get_PessoaUsuario()+"','N','"+p.getEmpresa()+"','"+param5+"','"+param6+"')";
-						if(mysql.Inserir_simples(query)) {
-							resp.setContentType("application/text");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print("Solicitação realizada com sucesso.Aguarde Aprovação");
-						}else {
-							resp.setContentType("application/text");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print("Erro na solicitação do novo site.");
+							if(p.getEmpresaObj().getMstpFree()) {
+								Document site = new Document();
+								Document geometry = new Document();
+								Document properties = new Document();
+								Document geo = new Document();
+								site.append("Empresa", p.getEmpresaObj().getEmpresaId());
+								site.append("site_id", param2);
+								site.append("site_ativo", "Y");
+								site.append("site_nome", param1);
+								site.append("site_operadora", param3);
+								site.append("site_uf", param4);
+								site.append("site_latitude",param5);
+								site.append("site_longitude",param6);
+								geometry.append("type", "Point");
+								geometry.append("coordinates", verifica_coordenadas(param6,param5));
+								properties.append("Operadora", param3);
+								properties.append("Municipio", param4);
+								properties.append("UF", param4);
+								properties.append("SiteID", param2);
+			    	            site.append("dt_add_site", f3.format(time));
+			    	            geo.append("type","Feature");
+			    	            geo.append("geometry", geometry);
+			    	            geo.append("properties", properties);
+			    	            site.append("GEO", geo);
+			    	            site.append("Update_by", p.get_PessoaUsuario());
+			    	            site.append("Update_time", time);
+								mongo.InserirSimpels("sites", site);
+							}else {
+							query="insert into site_aprova (site_nome,site_id,site_operadora,site_estado,dt_pedido,usuario_pedido,aprovado,empresa,site_lat,site_lng) values ('"+param1+"','"+param2+"','"+param3+"','"+param4+"','"+f3.format(time)+"','"+p.get_PessoaUsuario()+"','N','"+p.getEmpresa()+"','"+param5+"','"+param6+"')";
+							if(mysql.Inserir_simples(query)) {
+								resp.setContentType("application/text");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print("Solicitação realizada com sucesso.Aguarde Aprovação");
+							}else {
+								resp.setContentType("application/text");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print("Erro na solicitação do novo site.");
+							}
+							}
 						}
-					}mongo.fecharConexao();
+						mongo.fecharConexao();
     				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+						}else if(opt.equals("29.1")){
+
+							param1=req.getParameter("projeto");
+							param2=req.getParameter("id_");
+							param3=req.getParameter("cliente");
+							param4=req.getParameter("atividade");
+							param5=req.getParameter("plano");
+							
+							List<Bson> filtros = new ArrayList<>();
+							List<Document> milestones = new ArrayList<>();
+							Bson filtro;
+							filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
+							filtros.add(filtro);
+							filtro=Filters.eq("site_id",param2);
+							filtros.add(filtro);
+							FindIterable<Document> findIterable;
+							findIterable=mongo.ConsultaOrdenadaSemFiltroListaLimit1("rollout", "recid", -1);
+							MongoCursor<Document> resultado = findIterable.iterator();
+							Document last_site;
+							Integer linha_id=0;
+							if(resultado.hasNext()) {
+								last_site=resultado.next();
+								linha_id=Integer.parseInt(last_site.get("recid").toString());
+							}else {
+								return;
+							}
+							if(p.getEmpresaObj().getMstpFree()) {
+									Document linhaRollout = new Document();
+									Document milestone = new Document();
+									linha_id=linha_id+1;
+									linhaRollout.append("Empresa", p.getEmpresaObj().getEmpresaId());
+									linhaRollout.append("recid", linha_id);
+									linhaRollout.append("Linha_ativa", "Y");
+									linhaRollout.append("rolloutId", "Rollout1");
+									linhaRollout.append("Site ID", param2);
+									linhaRollout.append("Cliente", param3);
+									linhaRollout.append("Projeto",param1);
+									linhaRollout.append("Atividade",param4);
+									linhaRollout.append("Comentario", "");
+									milestone.append("Milestone", "AtividadePlano");
+									Calendar hoje = Calendar.getInstance();
+									if(!param5.equals("")) {
+										SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd"); 
+										Calendar plano = Calendar.getInstance();
+										plano.setTimeInMillis(format.parse(param5).getTime());
+										milestone.append("sdate_pre_AtividadePlano", plano.getTime());
+										plano.add(Calendar.DAY_OF_MONTH, 1);
+										milestone.append("edate_pre_AtividadePlano", plano.getTime());
+									}else {
+										milestone.append("sdate_pre_AtividadePlano", hoje.getTime());
+										milestone.append("edate_pre_AtividadePlano", hoje.getTime());
+									}
+									
+									milestone.append("sdate_AtividadePlano", "");
+									milestone.append("edate_AtividadePlano", "");
+									milestone.append("udate_AtividadePlano", "");
+									milestone.append("resp_AtividadePlano", p.get_PessoaUsuario());
+									milestone.append("status_AtividadePlano", "Nao Iniciada");
+									milestone.append("duracao_AtividadePlano", 0);
+									milestones.add(milestone);
+									linhaRollout.append("Milestone", milestones);
+									linhaRollout.append("update_by", p.get_PessoaUsuario());
+									linhaRollout.append("update_time", hoje.getTime());
+									mongo.InserirSimpels("rollout", linhaRollout);
+									resp.setContentType("application/text");  
+									resp.setCharacterEncoding("UTF-8"); 
+									PrintWriter out = resp.getWriter();
+									out.print("Tarefa Criadacom Sucesso!");
+								}
+						mongo.fecharConexao();
+	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+							
 						}else if(opt.equals("30")){
 							param1=req.getParameter("latitudemobile");
 							param2=req.getParameter("longitudemobile");
@@ -1612,7 +1722,7 @@ public class Op_Servlet extends HttpServlet {
     						properties.append("Site",time);
     						properties.append("Coordenadas",param2+","+param1);
     						properties.append("Data",time);
-    						document.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+    						document.append("Empresa", p.getEmpresaObj().getEmpresaId());
     						geo.append("type", "Feature");
     						geo.append("geometry", geometry);
     						geo.append("properties", properties);
@@ -1621,27 +1731,24 @@ public class Op_Servlet extends HttpServlet {
     						
     						mongo.fecharConexao();
     	    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-    	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+    	    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("31")){
-							System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" buscando quantidade de atividades");
+							System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" buscando quantidade de atividades");
 							System.out.println("******buscando quantidade atividades para "+p.get_PessoaUsuario());
 							Long qtde_atividades;
 							qtde_atividades=(long) 0;
 							Bson filtro;
 							List<Bson> filtros = new ArrayList<Bson>();
 							
-							rs=mysql.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
+							rs=mysql.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresaId());
 							if(rs.next()) {
 								//System.out.println("Achou milestones");
 								rs.beforeFirst();
 								while(rs.next()) {
 									filtros = new ArrayList<Bson>();
-									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 									filtros.add(filtro);
-									//filtro= Filters.elemMatch("Milestone", Filters.eq("edate_"+rs.getString(1),""));
-									//filtros.add(filtro);
-									//System.out.println(p.get_PessoaUsuario());
-									//System.out.println("******resp_"+rs.getString(1));
+									
 									filtro= Filters.elemMatch("Milestone", Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario()));
 									filtros.add(filtro);
 									filtro= Filters.elemMatch("Milestone", Filters.eq("edate_"+rs.getString(1),""));
@@ -1649,11 +1756,11 @@ public class Op_Servlet extends HttpServlet {
 									//System.out.println(rs.getString(1));
 									try {
 									FindIterable<Document> finddocuments = mongo.ConsultaSimplesComFiltro("rollout", filtros);
-									//System.out.println("*****Consulta executada");
+									
 									MongoCursor<Document> resultado = finddocuments.iterator();
-									//System.out.println("*****Contagem efetuada");
+									
 									if(resultado.hasNext()) {
-									//	System.out.println("****achou documentos");
+									
 										Document atividade;
 										while(resultado.hasNext()) {
 											atividade=resultado.next();
@@ -1663,8 +1770,7 @@ public class Op_Servlet extends HttpServlet {
 										System.out.println(e.getCause());
 										System.out.println(e.getMessage());
 									}
-									//qtde_atividades=qtde_atividades+mongo.ConsultaCountComplexa("rollout", filtros);
-									System.out.println("Atividades Encontradas para "+ rs.getString(1) +" foram "+ qtde_atividades);
+									
 								}
 								resp.setContentType("application/text");  
 								resp.setCharacterEncoding("UTF-8"); 
@@ -1679,10 +1785,10 @@ public class Op_Servlet extends HttpServlet {
 							
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("32")){
-							//Carrega Tarefas do Rollout no APP.
-							System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" carregando Atvidades do Rollout");
+							
+							System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" carregando Atvidades do Rollout");
 							query="";
 							String dstart="";
 							String start="";
@@ -1693,7 +1799,7 @@ public class Op_Servlet extends HttpServlet {
 							String lng="";
 							String imagem_status= "notstarted.png";
 							String bt_texto="";
-							
+							dados_tabela="";
 							Bson filtro;
 							Document linha_rollout=new Document();
 							Document milestone=new Document();
@@ -1701,11 +1807,11 @@ public class Op_Servlet extends HttpServlet {
 							List<Bson> lista_filtro = new ArrayList<>();
 							List<Bson> lista_filtro_site = new ArrayList<>();
 							List<Document> milestones = new ArrayList<>();
-							rs=mysql.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresa_id());
+							rs=mysql.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresaId());
 							if(rs.next()) {
 								rs.beforeFirst();
 								while(rs.next()) {
-									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 									lista_filtro.add(filtro);
 									filtro= Filters.elemMatch("Milestone", Filters.and(Filters.eq("edate_"+rs.getString(1),""),Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario())));
 									lista_filtro.add(filtro);
@@ -1716,7 +1822,7 @@ public class Op_Servlet extends HttpServlet {
 										while(resultado.hasNext()) {
 											linha_rollout=resultado.next();
 											lista_filtro_site.clear();
-											filtro=Filters.and(Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id()),Filters.eq("site_id",linha_rollout.getString("Site ID")));
+											filtro=Filters.and(Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId()),Filters.eq("site_id",linha_rollout.getString("Site ID")));
 											lista_filtro_site.add(filtro);
 											findIterable2=mongo.ConsultaCollectioncomFiltrosLista("sites", lista_filtro_site);
 											MongoCursor<Document> resultado2 = findIterable2.iterator();
@@ -1792,7 +1898,7 @@ public class Op_Servlet extends HttpServlet {
 														      + "<td style='padding:2px'><a href=\"#\" class=\"myButton\"  onclick=\"atualiza_rollout("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','Finalizada','"+linha_rollout.getString("Site ID")+"')\">Completar</a></td>"
 													      + "</tr>"
 													      + "<tr>"
-													      + "<td style='padding:2px'><a href=\"#\" class=\"myButton\" ><i class=\"far fa-hand-pointer\"  onclick=\"reg_bySite('"+linha_rollout.getString("Site ID")+"','"+lat+"','"+lat+"','Site','"+p.getEmpresaObj().getEmpresa_id()+"')\"></i></a></td>"
+													      + "<td style='padding:2px'><a href=\"#\" class=\"myButton\" ><i class=\"far fa-hand-pointer\"  onclick=\"reg_bySite('"+linha_rollout.getString("Site ID")+"','"+lat+"','"+lat+"','Site','"+p.getEmpresaObj().getEmpresaId()+"')\"></i></a></td>"
 														      + "<td style='padding:2px'>"
 														      	  + "<a href=\"#\" class=\"myButton\"  style=\"border-radius: 5%;font-size:25px;\" onclick=\"navega('cheklist_select_template');setTimeout(atualiza_checklist_dados("+linha_rollout.getInteger("recid")+",'"+milestone.getString("Milestone")+"','"+linha_rollout.getString("Site ID")+"'),1000)\">Checklist</a>"
 														      + "</td>"
@@ -1806,41 +1912,10 @@ public class Op_Servlet extends HttpServlet {
 								lista_filtro.clear();
 								}
 							}
+							if(dados_tabela.equals("")) {
+								dados_tabela="SEM ATIVIDADES NO ROLLOUT PARA ESSE USUÁRIO";
+							}
 							
-							//query="select * from rollout where tipo_campo='Milestone' and responsavel='"+p.get_PessoaUsuario()+"' and dt_fim in ('','01/01/1800') ";
-							
-							
-							
-							/*rs=mysql.Consulta(query);
-							if(rs.next()) {
-								rs.beforeFirst();
-								status_bt="false";
-								while(rs.next()) {
-									//System.out.println(rs.getString("status_atividade"));
-									if(rs.getString("status_atividade").equals("Finalizada")) {
-	    								imagem_status="finished.png";
-	    							}else if(rs.getString("status_atividade").equals("parada")) {
-	    								imagem_status="stopped.png";
-	    								status_bt="true";
-	    								bt_texto="Continuar";
-	    							}else if(rs.getString("status_atividade").equals("iniciada")) {
-	    								imagem_status="started.png";
-	    								bt_texto="Parar";
-	    								status_bt="false";
-	    							}else {
-	    								imagem_status="notstarted.png";
-	    								bt_texto="Iniciar";
-	    								status_bt="true";
-	    							}
-									
-									// esse era o dos cards onclick=\"navega('consulta_rollout_atividade');consulta_rollout_info("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("dt_inicio_bl")+"','"+ rs.getString("dt_fim_bl")+"')\"
-								dados_tabela=dados_tabela+"<ons-card >\n"+
-									      "<div class='title' style='display:block'>"+rs.getString("milestone")+"<div style='float:right'><img src='img/"+imagem_status+"'></div></div>\n"+
-									      "<div class=\"content\"><div>Planejamento:"+rs.getString("dt_inicio_bl")+" - "+ rs.getString("dt_fim_bl")+"</div><div>Site:"+ rs.getString("value_atbr_field")+"</div><hr><br>"
-									      +"<section style='padding:10px'><i class=\"far fa-hand-pointer\"></i></section>"		
-									      + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
-									    "</ons-card>\n";
-									}*/
 								//System.out.println(dados_tabela);
 								resp.setContentType("application/html");  
 								resp.setCharacterEncoding("UTF-8"); 
@@ -1848,7 +1923,7 @@ public class Op_Servlet extends HttpServlet {
 								out.print(dados_tabela);
 								mongo.fecharConexao();
 			    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-			    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("33")){
 							
 							param1=req.getParameter("recid");
@@ -1867,7 +1942,7 @@ public class Op_Servlet extends HttpServlet {
 							query="";
 							if(param3.equals("Finalizada")) {
 								filtro.append("recid", Integer.parseInt(param1));
-								filtro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+								filtro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 								filtro.append("Milestone.Milestone", param2);
 								update.append("Milestone.$.edate_"+param2, checa_formato_data(f2.format(time)));
 								update.append("Milestone.$.status_"+param2, "Finalizada");
@@ -1876,7 +1951,7 @@ public class Op_Servlet extends HttpServlet {
 								//query="update rollout set dt_fim='"+f2.format(time)+"',status_atividade='Finalizada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
-	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
+	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresaId());
 	    				        historico.append("TipoCampo" , "Milestone");
 	    				        historico.append("Milestone" , param2);
 	    				        historico.append("Campo","Fim Real");
@@ -1888,7 +1963,7 @@ public class Op_Servlet extends HttpServlet {
 	    						historico.clear();
 	    						historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
-	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
+	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresaId());
 	    				        historico.append("TipoCampo" , "Milestone");
 	    				        historico.append("Milestone" , param2);
 	    				        historico.append("Campo","Status");
@@ -1901,7 +1976,7 @@ public class Op_Servlet extends HttpServlet {
 							}else if(param3.equals("Nao Iniciada")){
 								//System.out.println("entrou no nao iniciada");
 								filtro.append("recid", Integer.parseInt(param1));
-								filtro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+								filtro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 								filtro.append("Milestone.Milestone", param2);
 								update.append("Milestone.$.sdate_"+param2, checa_formato_data(f2.format(time)));
 								update.append("Milestone.$.status_"+param2, "iniciada");
@@ -1914,7 +1989,7 @@ public class Op_Servlet extends HttpServlet {
 								//query="update rollout set dt_inicio='"+f2.format(time)+"',status_atividade='iniciada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
-	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
+	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresaId());
 	    				        historico.append("TipoCampo" , "Milestone");
 	    				        historico.append("Milestone" , param2);
 	    				        historico.append("Campo","Inicio Real");
@@ -1926,7 +2001,7 @@ public class Op_Servlet extends HttpServlet {
 	    						historico.clear();
 	    						historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
-	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
+	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresaId());
 	    				        historico.append("TipoCampo" , "Milestone");
 	    				        historico.append("Milestone" , param2);
 	    				        historico.append("Campo","Status");
@@ -1938,7 +2013,7 @@ public class Op_Servlet extends HttpServlet {
 	    						historico.clear();
 							}else if(param3.equals("iniciada")) {
 								filtro.append("recid", Integer.parseInt(param1));
-								filtro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+								filtro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 								filtro.append("Milestone.Milestone", param2);
 								//update.append("Milestone.$.sdate_"+param2, checa_formato_data(f2.format(time)));
 								update.append("Milestone.$.status_"+param2, "parada");
@@ -1947,7 +2022,7 @@ public class Op_Servlet extends HttpServlet {
 								//query="update rollout set status_atividade='parada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
-	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
+	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresaId());
 	    				        historico.append("TipoCampo" , "Milestone");
 	    				        historico.append("Milestone" , param2);
 	    				        historico.append("Campo","Status");
@@ -1958,7 +2033,7 @@ public class Op_Servlet extends HttpServlet {
 	    				        mongo.InserirSimpels("rollout_history", historico);
 							}else if(param3.equals("parada")) {
 								filtro.append("recid", Integer.parseInt(param1));
-								filtro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+								filtro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 								filtro.append("Milestone.Milestone", param2);
 								//update.append("Milestone.$.sdate_"+param2, checa_formato_data(f2.format(time)));
 								update.append("Milestone.$.status_"+param2, "iniciada");
@@ -1967,7 +2042,7 @@ public class Op_Servlet extends HttpServlet {
 								//query="update rollout set status_atividade='iniciada' where recid="+param1+" and milestone='"+param2+"' and empresa="+p.getEmpresa();
 								historico.append("recid" , param1);
 	    				        historico.append("SiteID" , param4);
-	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresa_id());
+	    				        historico.append("Empresa" , p.getEmpresaObj().getEmpresaId());
 	    				        historico.append("TipoCampo" , "Milestone");
 	    				        historico.append("Milestone" , param2);
 	    				        historico.append("Campo","Status");
@@ -1986,12 +2061,12 @@ public class Op_Servlet extends HttpServlet {
 							//}
 								mongo.fecharConexao();
 			    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-			    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("34")){
 							System.out.println("Salvando foto de perfil");
 							
 							String imageBase64 = req.getParameter("image64");
-							System.out.println(imageBase64);
+							//System.out.println(imageBase64);
 							byte[] imageByte= Base64.decodeBase64(imageBase64);
 							InputStream inputStream2= new ByteArrayInputStream(imageByte);
 							/*if (ServletFileUpload.isMultipartContent(req)) {
@@ -2021,7 +2096,7 @@ public class Op_Servlet extends HttpServlet {
 								    	//System.out.println("Item size: " + item.getSize());
 								    	//InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));	    	
 								    	query="";
-										query="update usuarios set foto_perfil=? where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'";
+										query="update usuarios set foto_perfil=? where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresaId()+"'";
 										PreparedStatement statement;
 										 statement = mysql.getConnection().prepareStatement(query);
 										 statement.setBlob(1, inputStream2);
@@ -2035,14 +2110,14 @@ public class Op_Servlet extends HttpServlet {
 							
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("35")){
 							//System.out.println("Carregando foto de perfil de "+p.get_PessoaUsuario());
 							ServletOutputStream out = resp.getOutputStream();
 							query="";
 							Blob image = null;
 							
-							query="select foto_perfil from usuarios where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'";
+							query="select foto_perfil from usuarios where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresaId()+"'";
 							rs=mysql.Consulta(query);
 							if(rs.next()) {
 								//System.out.println(" foto encontrada");
@@ -2068,7 +2143,7 @@ public class Op_Servlet extends HttpServlet {
 							}
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("36")){
 							//System.out.println("Buscando lista de Aprovacoes");
 							param1=req.getParameter("usuario");
@@ -2077,7 +2152,7 @@ public class Op_Servlet extends HttpServlet {
 							dados_tabela="<div class=\"list\">";
 							if(param2.equals("ajustePonto")) {
 								if(p.getPerfil_funcoes().contains("AjustePontoApprover")) {
-									query="select * from ajuste_ponto where aprovada<>'R' and aprovada <> 'Y' and usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by id_ajuste_ponto desc";
+									query="select * from ajuste_ponto where aprovada<>'R' and aprovada <> 'Y' and usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresaId()+" order by id_ajuste_ponto desc";
 									rs=mysql.Consulta(query);
 									if(rs.next()) {
 										rs.beforeFirst();
@@ -2098,7 +2173,7 @@ public class Op_Servlet extends HttpServlet {
 								}
 							}else if(param2.equals("HorasExtras")) {
 								if(p.getPerfil_funcoes().contains("BancoHHApprover")) {
-									query="select * from horas_extras where aprovada<>'R' and aprovada <> 'Y' and id_usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by id_he desc";
+									query="select * from horas_extras where aprovada<>'R' and aprovada <> 'Y' and id_usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresaId()+" order by id_he desc";
 									rs=mysql.Consulta(query);
 									if(rs.next()) {
 										rs.beforeFirst();
@@ -2120,7 +2195,7 @@ public class Op_Servlet extends HttpServlet {
 								
 							}else if(param2.equals("SiteNovo")) {
 								if(p.getPerfil_funcoes().contains("Site Manager")) {
-									query="select * from site_aprova where aprovado<>'R' and aprovado <> 'Y' and usuario_pedido='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by sysid desc";
+									query="select * from site_aprova where aprovado<>'R' and aprovado <> 'Y' and usuario_pedido='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresaId()+" order by sysid desc";
 									rs=mysql.Consulta(query);
 									if(rs.next()) {
 										rs.beforeFirst();
@@ -2147,7 +2222,7 @@ public class Op_Servlet extends HttpServlet {
 									List<Bson> filtros = new ArrayList<>();
 									filtro=Filters.eq("usuario_solicitante",param1);
 									filtros.add(filtro);
-									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+									filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 									filtros.add(filtro);
 									filtro=Filters.eq("usuario_aprovador",p.get_PessoaUsuario());
 									filtros.add(filtro);
@@ -2189,12 +2264,12 @@ public class Op_Servlet extends HttpServlet {
 							out.print(dados_tabela);
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("37")){
 							param1=req.getParameter("tipo");
 							if(param1.equals("ajustePonto")) {
 							if(p.getPerfil_funcoes().contains("AjustePontoApprover")) {
-							query="select distinct usuario from ajuste_ponto where aprovada<>'R' and aprovada <> 'Y' and usuario<>'"+p.get_PessoaUsuario()+"' and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by id_ajuste_ponto desc";
+							query="select distinct usuario from ajuste_ponto where aprovada<>'R' and aprovada <> 'Y' and usuario<>'"+p.get_PessoaUsuario()+"' and empresa="+p.getEmpresaObj().getEmpresaId()+" order by id_ajuste_ponto desc";
 							rs=mysql.Consulta(query);
 							if(rs.next()) {
 								rs.beforeFirst();
@@ -2219,7 +2294,7 @@ public class Op_Servlet extends HttpServlet {
 							}
 							}else if(param1.equals("HorasExtras")) {
 								if(p.getPerfil_funcoes().contains("BancoHHApprover")) {
-									query="select distinct id_usuario from horas_extras where aprovada<>'R' and aprovada <> 'Y' and id_usuario<>'"+p.get_PessoaUsuario()+"' and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by id_he desc";
+									query="select distinct id_usuario from horas_extras where aprovada<>'R' and aprovada <> 'Y' and id_usuario<>'"+p.get_PessoaUsuario()+"' and empresa="+p.getEmpresaObj().getEmpresaId()+" order by id_he desc";
 									rs=mysql.Consulta(query);
 									if(rs.next()) {
 										rs.beforeFirst();
@@ -2244,7 +2319,7 @@ public class Op_Servlet extends HttpServlet {
 									}
 							}else if(param1.equals("SiteNovo")) {
 								if(p.getPerfil_funcoes().contains("Site Manager")) {
-									query="select distinct usuario_pedido from site_aprova where aprovado<>'R' and aprovado <> 'Y' and usuario_pedido<>'"+p.get_PessoaUsuario()+"' and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by sysid desc";
+									query="select distinct usuario_pedido from site_aprova where aprovado<>'R' and aprovado <> 'Y' and usuario_pedido<>'"+p.get_PessoaUsuario()+"' and empresa="+p.getEmpresaObj().getEmpresaId()+" order by sysid desc";
 									rs=mysql.Consulta(query);
 									if(rs.next()) {
 										rs.beforeFirst();
@@ -2271,7 +2346,7 @@ public class Op_Servlet extends HttpServlet {
 								Document autorizacao= new Document();
 								Bson filtro;
 								List<Bson> filtros = new ArrayList<>();
-								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+								filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 								filtros.add(filtro);
 								filtro=Filters.eq("status_autorizacao","PENDENTE");
 								filtros.add(filtro);
@@ -2303,7 +2378,7 @@ public class Op_Servlet extends HttpServlet {
 							}
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("38")){
 							//System.out.println("iniciando reprovação");
 							param1=req.getParameter("usuario");
@@ -2311,7 +2386,7 @@ public class Op_Servlet extends HttpServlet {
 							param3=req.getParameter("id");
 							if(param2.equals("ajustePonto")) {
 								query="";
-								query="update ajuste_ponto set aprovada='R' where id_ajuste_ponto="+param3+" and usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresa_id();
+								query="update ajuste_ponto set aprovada='R' where id_ajuste_ponto="+param3+" and usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresaId();
 								if(mysql.Alterar(query)) {
 									resp.setContentType("application/html");  
 									resp.setCharacterEncoding("UTF-8"); 
@@ -2320,7 +2395,7 @@ public class Op_Servlet extends HttpServlet {
 								}
 							}else if(param2.equals("HorasExtras")) {
 								query="";
-								query="update horas_extras set aprovada='R' where id_he="+param3+" and id_usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresa_id();
+								query="update horas_extras set aprovada='R' where id_he="+param3+" and id_usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresaId();
 								if(mysql.Alterar(query)) {
 									resp.setContentType("application/html");  
 									resp.setCharacterEncoding("UTF-8"); 
@@ -2329,7 +2404,7 @@ public class Op_Servlet extends HttpServlet {
 								}
 							}else if(param2.equals("SiteNovo")) {
 								query="";
-								query="update site_aprova set aprovado='R' where sysid="+param3+" and usuario_pedido='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresa_id();
+								query="update site_aprova set aprovado='R' where sysid="+param3+" and usuario_pedido='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresaId();
 								if(mysql.Alterar(query)) {
 									resp.setContentType("application/html");  
 									resp.setCharacterEncoding("UTF-8"); 
@@ -2353,7 +2428,7 @@ public class Op_Servlet extends HttpServlet {
 							}
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("39")){
 							//System.out.println("iniciando reprovação");
 							param1=req.getParameter("usuario");
@@ -2361,7 +2436,7 @@ public class Op_Servlet extends HttpServlet {
 							param3=req.getParameter("id");
 							if(param2.equals("HorasExtras")) {
 								query="";
-								query="update horas_extras set aprovada='Y' where id_he="+param3+" and id_usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresa_id();
+								query="update horas_extras set aprovada='Y' where id_he="+param3+" and id_usuario='"+param1+"' and empresa="+p.getEmpresaObj().getEmpresaId();
 								if(mysql.Alterar(query)) {
 									resp.setContentType("application/html");  
 									resp.setCharacterEncoding("UTF-8"); 
@@ -2410,7 +2485,7 @@ public class Op_Servlet extends HttpServlet {
 								rs=mysql.Consulta("select * from site_aprova where sysid="+param3);
 								if(rs.next()) {
 									query="INSERT INTO sites (site_id,site_nome,site_latitude,site_longitude,site_uf,site_operadora,dt_add_site,usuario_add_site,empresa) "
-							                + "VALUES ('"+rs.getString("site_id")+"','"+rs.getString("site_nome")+"','"+rs.getString("site_lat").trim()+"','"+rs.getString("site_lng").trim()+"','"+rs.getString("site_estado")+"','"+rs.getString("site_operadora")+"','"+time+"','"+rs.getString("usuario_pedido")+"','"+p.getEmpresaObj().getEmpresa_id()+"')";
+							                + "VALUES ('"+rs.getString("site_id")+"','"+rs.getString("site_nome")+"','"+rs.getString("site_lat").trim()+"','"+rs.getString("site_lng").trim()+"','"+rs.getString("site_estado")+"','"+rs.getString("site_operadora")+"','"+time+"','"+rs.getString("usuario_pedido")+"','"+p.getEmpresaObj().getEmpresaId()+"')";
 									if(mysql.Inserir_simples(query)) {
 										resp.setContentType("application/text");  
 										resp.setCharacterEncoding("UTF-8"); 
@@ -2443,7 +2518,7 @@ public class Op_Servlet extends HttpServlet {
 						}
 							mongo.fecharConexao();
 		    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("40")){
 				param1=req.getParameter("log");
 				Semail email=new Semail();
@@ -2454,12 +2529,12 @@ public class Op_Servlet extends HttpServlet {
 				out.print("Log do erro enviado com sucesso! estaremos analisando as possíveis causas e soluções!");
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("41")) {
 				Bson filtro;
 				List<Bson> filtros = new ArrayList<>();
 				Document justificativa = new Document();
-				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 				filtros.add(filtro);
 				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("Justificativas", filtros);
 				MongoCursor<Document> resultado = findIterable.iterator();
@@ -2477,7 +2552,7 @@ public class Op_Servlet extends HttpServlet {
 				out.print(dados_tabela);
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("42")) {
 				//System.out.println("Salvando foto de justificativa");
 				int ultimo=0;
@@ -2491,7 +2566,7 @@ public class Op_Servlet extends HttpServlet {
 				InputStream inputStream2= new ByteArrayInputStream(imageByte);
 					    	
 					    	query="";
-							query="update ajuste_ponto set foto_justificativa=? where id_ajuste_ponto="+ultimo+" and empresa="+p.getEmpresaObj().getEmpresa_id();
+							query="update ajuste_ponto set foto_justificativa=? where id_ajuste_ponto="+ultimo+" and empresa="+p.getEmpresaObj().getEmpresaId();
 							PreparedStatement statement;
 							 statement = mysql.getConnection().prepareStatement(query);
 							 statement.setBlob(1, inputStream2);
@@ -2505,7 +2580,7 @@ public class Op_Servlet extends HttpServlet {
 					
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("43")) {
 
 				//System.out.println("Carregando sites no mapa");
@@ -2518,9 +2593,9 @@ public class Op_Servlet extends HttpServlet {
 				Document geo=new Document();
 				Bson filtro;
 				List<Bson> lista_filtro = new ArrayList<Bson>();
-				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 				lista_filtro.add(filtro);
-				//filtro=Filters.not("Empresa",p.getEmpresa().getEmpresa_id());
+				//filtro=Filters.not("Empresa",p.getEmpresa().getEmpresaId());
 				lista_filtro.add(filtro);
 				filtro=Filters.gte("data_dia",dia.getTime());
 				lista_filtro.add(filtro);
@@ -2558,7 +2633,7 @@ public class Op_Servlet extends HttpServlet {
 				
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 			}else if(opt.equals("44")) {
 				Bson filtro;
@@ -2571,7 +2646,7 @@ public class Op_Servlet extends HttpServlet {
 				System.out.println(param2);
 				System.out.println(param3);
 				System.out.println(param4);
-				filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 				lista_filtro.add(filtro);
 				filtro = Filters.eq("site_id",param2);
 				lista_filtro.add(filtro);
@@ -2591,7 +2666,7 @@ public class Op_Servlet extends HttpServlet {
 					}
 					mongo.fecharConexao();
 					Timestamp time2 = new Timestamp(System.currentTimeMillis());
-					System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+					System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				
 			}else if(opt.equals("45")) {
 				//System.out.println("Salvando foto de registro");
@@ -2613,7 +2688,7 @@ public class Op_Servlet extends HttpServlet {
 				InputStream inputStream2= new ByteArrayInputStream(imageByte);
 					    	//InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
 					    	query="";
-							query="insert into registro_foto (id_registro,usuario,timestamp_banco,foto_registro,Empresa,mes,dia,hora,min,ano,tipo_registro,data_dia) values ("+ultimo+",'"+p.get_PessoaUsuario()+"','"+time+"',?,"+p.getEmpresaObj().getEmpresa_id()+","+(d.get(Calendar.MONTH)+1)+","+d.get(Calendar.DAY_OF_MONTH)+","+d.get(Calendar.HOUR_OF_DAY)+","+d.get(Calendar.MINUTE)+","+d.get(Calendar.YEAR)+",'"+tipo_regitro+"','"+f2.format(time)+"')";
+							query="insert into registro_foto (id_registro,usuario,timestamp_banco,foto_registro,Empresa,mes,dia,hora,min,ano,tipo_registro,data_dia) values ("+ultimo+",'"+p.get_PessoaUsuario()+"','"+time+"',?,"+p.getEmpresaObj().getEmpresaId()+","+(d.get(Calendar.MONTH)+1)+","+d.get(Calendar.DAY_OF_MONTH)+","+d.get(Calendar.HOUR_OF_DAY)+","+d.get(Calendar.MINUTE)+","+d.get(Calendar.YEAR)+",'"+tipo_regitro+"','"+f2.format(time)+"')";
 							PreparedStatement statement;
 							 statement = mysql.getConnection().prepareStatement(query);
 							 statement.setBlob(1, inputStream2);
@@ -2626,7 +2701,7 @@ public class Op_Servlet extends HttpServlet {
 					    
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("46")) {
 				query="";
 				query="select * from versao_script";
@@ -2639,7 +2714,7 @@ public class Op_Servlet extends HttpServlet {
 				}
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("47")) {
 				
 				param2=req.getParameter("local_");
@@ -2650,7 +2725,7 @@ public class Op_Servlet extends HttpServlet {
 				Document autoriza_hh= new Document();
 				autoriza_hh.append("cod_autorizacao", time.getTime());
 				autoriza_hh.append("usuario_solicitante", p.get_PessoaUsuario());
-				autoriza_hh.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+				autoriza_hh.append("Empresa", p.getEmpresaObj().getEmpresaId());
 				autoriza_hh.append("usuario_aprovador", p.getPessoaLider());
 				autoriza_hh.append("status_autorizacao", "PENDENTE");
 				autoriza_hh.append("data_dia_he", f2.format(time));
@@ -2663,7 +2738,7 @@ public class Op_Servlet extends HttpServlet {
 				envia_mensagem("De:"+p.get_PessoaUsuario()+"\nSOLICITAÇÃO DE AUTORIZAÇÃO PARA HORA EXTRA\nData e Hora de Envio: "+f3.format(time),p.getPessoaLider());
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("48")) {
 				
 				param2=req.getParameter("local");
@@ -2672,7 +2747,7 @@ public class Op_Servlet extends HttpServlet {
 				Document autorizacao= new Document();
 				Bson filtro;
 				List<Bson> filtros = new ArrayList<>();
-				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 				filtros.add(filtro);
 				filtro=Filters.eq("status_autorizacao","APROVADO");
 				filtros.add(filtro);
@@ -2704,10 +2779,10 @@ public class Op_Servlet extends HttpServlet {
 				}
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("49")) {
 				
-					rs=mysql.Consulta("select distinct id_usuario,nome from usuarios where tipo='Lider' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'");
+					rs=mysql.Consulta("select distinct id_usuario,nome from usuarios where tipo='Lider' and empresa='"+p.getEmpresaObj().getEmpresaId()+"'");
 				 
 				if(rs.next()){
     				rs.beforeFirst();
@@ -2736,12 +2811,12 @@ public class Op_Servlet extends HttpServlet {
 				out.print(dados_tabela);
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 			}else if(opt.equals("50")) {
 				param1=req.getParameter("lider");
 				query="";
-				query="update usuarios set lider_usuario='"+param1+"' where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"'";
+				query="update usuarios set lider_usuario='"+param1+"' where id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresaObj().getEmpresaId()+"'";
 				if(mysql.Update_simples(query)) {
 					p.setPessoaLider(param1);
 					session.setAttribute("pessoa",p);
@@ -2752,12 +2827,12 @@ public class Op_Servlet extends HttpServlet {
 				}
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 			
 			}else if(opt.equals("51")) {
 				
-				query="select * from vistoria_report where empresa="+p.getEmpresaObj().getEmpresa_id();
+				query="select * from vistoria_report where empresa="+p.getEmpresaObj().getEmpresaId();
 				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					dados_tabela="<ons-select id=\"select_checklist\" class=\"select-input hora_ajuste_class\" onchange='carrega_checklist_campos(this.value,1)'>";
@@ -2775,7 +2850,7 @@ public class Op_Servlet extends HttpServlet {
 				}
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 			
 			}else if(opt.equals("52")) {
@@ -2795,7 +2870,7 @@ public class Op_Servlet extends HttpServlet {
 				if(param5.equals("0")) {
 
 					
-					query="select * from vistoria_campos where relatorio_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by tree_id";
+					query="select * from vistoria_campos where relatorio_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresaId()+" order by tree_id";
 					//System.out.println(query);
 					rs=mysql.Consulta(query);
 					if(rs.next()) {
@@ -2827,9 +2902,9 @@ public class Op_Servlet extends HttpServlet {
 								if(rs.getString("tipo").equals("Foto")) {
 									dados_tabela=dados_tabela+"<section style='padding:5px'><img src='img/add_foto.png' height=\"80\" width=\"80\" onclick=\"foto_checklist("+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\"></section></div>";
 								}else if(rs.getString("tipo").equals("Texto")){
-									dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"text\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\" float></ons-input></section></div>";
+									dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"text\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA','"+rs.getString("tipo")+"')\" float></ons-input></section></div>";
 								}else if(rs.getString("tipo").equals("Data")){
-									dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"date\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\" float></ons-input></section></div>";
+									dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"date\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA','"+rs.getString("tipo")+"')\" float></ons-input></section></div>";
 								}else {
 									dados_tabela=dados_tabela+"<section style='padding:5px'></section></div>";
 								}
@@ -2839,7 +2914,7 @@ public class Op_Servlet extends HttpServlet {
 						   }
 						dados_tabela=dados_tabela+"\n</ons-card>\n";
 						dados_tabela=dados_tabela+"<ons-button modifier=\"large\" onclick=\"submete_checklist(0)\">Submeter</ons-button>";
-						System.out.println(dados_tabela);
+						//System.out.println(dados_tabela);
 					resp.setContentType("application/html");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -2847,13 +2922,13 @@ public class Op_Servlet extends HttpServlet {
 					}
 					
 				}else {
-				query="select *,NOW() from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and recid="+param2+" and status_vistoria<>'CANCELADO' and milestone='"+param4+"' and relatorio_id="+param1;
+				query="select *,NOW() from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresaId()+" and recid="+param2+" and status_vistoria<>'CANCELADO' and milestone='"+param4+"' and relatorio_id="+param1;
 				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					rs.last();
 					id_vistoria_existente=rs.getInt("Id_vistoria");
 					rs.first();
-					query="select *,NOW() from vistoria_campos where relatorio_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+"  order by tree_id";
+					query="select *,NOW() from vistoria_campos where relatorio_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresaId()+"  order by tree_id";
 					//System.out.println(query);
 					rs=mysql.Consulta(query);
 					String tudoAprovado="Y";
@@ -2877,7 +2952,7 @@ public class Op_Servlet extends HttpServlet {
 							SubAux = "\n<div>"+SubGrupos+"</div><hr>";	
 						}else {
 							if(rs.getString("tipo").equals("Foto")) {
-							rs2=mysql.Consulta("select *,NOW() from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and status_vistoria<>'CANCELADO' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
+							rs2=mysql.Consulta("select *,NOW() from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresaId()+" and status_vistoria<>'CANCELADO' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
 							String bordaCor="BordaCorAmarela";
 							
 							if(rs2.next()) {
@@ -2900,39 +2975,55 @@ public class Op_Servlet extends HttpServlet {
 										tudoAprovado="N";
 										imagens_auxiliares=imagens_auxiliares+"<img class=\""+bordaCor+"\" src=\"https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=54&id_dados="+rs2.getInt(1)+"\" height=\"80\" width=\"80\" onclick=\"deleta_foto("+rs2.getInt(1)+","+rs2.getInt("relatorio_id")+")\">";
 									}
-									//imagens_auxiliares=imagens_auxiliares+"<img class=\""+bordaCor+"\" src=\"http://172.20.10.4:8080/mstp_mobile/Op_Servlet?opt=54&id_dados="+rs2.getInt(1)+"\" height=\"80\" width=\"80\" onclick=\"deleta_foto("+rs2.getInt(1)+","+rs2.getInt("relatorio_id")+")\">";
+									//imagens_auxiliares=imagens_auxiliares+"<img class=\""+bordaCor+"\" src=\"https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=54&id_dados="+rs2.getInt(1)+"\" height=\"80\" width=\"80\" onclick=\"deleta_foto("+rs2.getInt(1)+","+rs2.getInt("relatorio_id")+")\">";
 								}
 							}else {
 								imagens_auxiliares="";
 							}
+							}else if(rs.getString("tipo").contains("Rollout")) {
+								List<Bson> filtros= new ArrayList<>();
+								Bson filtro = Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
+								filtros.add(filtro);
+								filtro = Filters.eq("recid",Integer.parseInt(param2));
+								filtros.add(filtro);
+								FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout", filtros);
+								Document rollout_linha = findIterable.first();
+								System.out.println("Campo pesquisado no rollout é: "+ rs.getString("tipo").substring(rs.getString("tipo").indexOf("_")+1));
+								//(String)rollout_linha.get(rs3.getString("tipo").substring(rs3.getString("tipo").indexOf("_")+1))
+							
+								texto_aux="<ons-input type='text' id='"+rs.getString("field_name")+"_texto' value='"+rollout_linha.get(rs.getString("tipo").substring(rs.getString("tipo").indexOf("_")+1).trim()).toString()+"' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+",'"+rs.getString("tipo")+"')\"></ons-input>";
+								
 							}else if(rs.getString("tipo").equals("Texto")) {
-								rs2=mysql.Consulta("select *,NOW() from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and status_vistoria<>'CANCELADO' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
+								rs2=mysql.Consulta("select *,NOW() from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresaId()+" and status_vistoria<>'CANCELADO' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
 								if(rs2.next()) {
 									
-										texto_aux="<ons-input type='text' id='"+rs.getString("field_name")+"_texto' value='"+rs2.getString("campo_valor_str")+"' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\"></ons-input>";
+										texto_aux="<ons-input type='text' id='"+rs.getString("field_name")+"_texto' value='"+rs2.getString("campo_valor_str")+"' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+",'"+rs.getString("tipo")+"')\"></ons-input>";
 									
 								}else {
-									texto_aux="<ons-input type='text' id='"+rs.getString("field_name")+"_texto' value='' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\"></ons-input>";
+									texto_aux="<ons-input type='text' id='"+rs.getString("field_name")+"_texto' value='' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+",'"+rs.getString("tipo")+"')\"></ons-input>";
 								}
 							}else if(rs.getString("tipo").equals("Data")) {
-								rs2=mysql.Consulta("select *,NOW() from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" and status_vistoria<>'CANCELADO' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
+								rs2=mysql.Consulta("select *,NOW() from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresaId()+" and status_vistoria<>'CANCELADO' and id_vistoria="+id_vistoria_existente+" and campo_id="+rs.getString("field_id")+" and recid="+param2+" and relatorio_id="+param1);
 								if(rs2.next()) {
 									
-										texto_aux="<ons-input type='date' value='"+rs2.getString("campo_valor_str")+"' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\"></ons-input>";
+										texto_aux="<ons-input type='date' value='"+rs2.getString("campo_valor_str")+"' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+",'"+rs.getString("tipo")+"')\"></ons-input>";
 									
 								}else {
-									texto_aux="<ons-input type='date' value='' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\"></ons-input>";
+									texto_aux="<ons-input type='date' value='' onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+",'"+rs.getString("tipo")+"')\"></ons-input>";
 								}
 							}
 							dados_tabela=dados_tabela+SubAux;
 							if(dados_tabela.length()==0) {
-								dados_tabela=dados_tabela+"<ons-card><div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"</div><hr><br>";
+								dados_tabela=dados_tabela+"<ons-card><div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"<div style='display:inline;float:right;'><a href='#' style='color:red' onclick=controles_foto('https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=60&id_campo="+rs.getString("field_id")+"')>Exemplo</a></div></div><hr><br>";
 							}else {
-								dados_tabela=dados_tabela+"</ons-card><ons-card><div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"</div><hr><br>";
+								dados_tabela=dados_tabela+"</ons-card><ons-card><div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"<div style='display:inline;float:right;color:red'><a href='#'>Exemplo</a></div></div><hr><br>";
 							}
 								if(rs.getString("tipo").equals("Foto")) {
 									dados_tabela=dados_tabela+"<section style='padding:5px'><img src='img/add_foto.png' height=\"80\" width=\"80\" onclick=\"foto_checklist("+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+","+id_vistoria_existente+")\">"+imagens_auxiliares+"</section></div>";
 								}else if(rs.getString("tipo").equals("Texto")){
+									dados_tabela=dados_tabela+"<section style='padding:5px'>"+texto_aux+"</section></div>";
+									
+								}else if(rs.getString("tipo").contains("Rollout")){
 									dados_tabela=dados_tabela+"<section style='padding:5px'>"+texto_aux+"</section></div>";
 									
 								}else if(rs.getString("tipo").equals("Data")){
@@ -2959,7 +3050,7 @@ public class Op_Servlet extends HttpServlet {
 						
 				}else {
 					
-				query="select * from vistoria_campos where relatorio_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" order by tree_id";
+				query="select * from vistoria_campos where relatorio_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresaId()+" order by tree_id";
 				//System.out.println(query);
 				rs=mysql.Consulta(query);
 				if(rs.next()) {
@@ -2983,17 +3074,17 @@ public class Op_Servlet extends HttpServlet {
 					}else {
 						    dados_tabela=dados_tabela+SubAux;
 						    if(dados_tabela.length()==0) {
-						    	dados_tabela=dados_tabela+"<ons-card ><div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"</div><hr><br>";
+						    	dados_tabela=dados_tabela+"<ons-card ><div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"<div style='display:inline;float:right;'><a href='#' style='color:red' onclick=controles_foto('https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=60&id_campo="+rs.getString("field_id")+"')>Exemplo</a></div></div><hr><br>";
 							}else {
-								dados_tabela=dados_tabela+"</ons-card><ons-card ><div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"</div><hr><br>";
+								dados_tabela=dados_tabela+"</ons-card><ons-card ><div>"+rs.getString("field_name")+" - "+rs.getString("tipo")+"<div style='display:inline;float:right;'><a href='#' style='color:red' onclick=controles_foto('https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=60&id_campo="+rs.getString("field_id")+"')>Exemplo</a></div></div><hr><br>";
 							}
 							
 							if(rs.getString("tipo").equals("Foto")) {
 								dados_tabela=dados_tabela+"<section style='padding:5px'><img src='img/add_foto.png' height=\"80\" width=\"80\" onclick=\"foto_checklist("+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\"></section></div>";
 							}else if(rs.getString("tipo").equals("Texto")){
-								dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"text\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\" float></ons-input></section></div>";
+								dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"text\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA','"+rs.getString("tipo")+"')\" float></ons-input></section></div>";
 							}else if(rs.getString("tipo").equals("Data")){
-								dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"date\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA')\" float></ons-input></section></div>";
+								dados_tabela=dados_tabela+"<section style='padding:5px'><ons-input modifier=\"material\" type=\"date\" placeholder=\"Insira o texto aqui\" onchange=\"atualiza_texto_checklist(this.value,"+rs.getString("field_id")+",'"+rs.getString("field_name")+"',"+rs.getString("relatorio_id")+",'NOVA','"+rs.getString("tipo")+"')\" float></ons-input></section></div>";
 							}else {
 								dados_tabela=dados_tabela+"<section style='padding:5px'></section></div>";
 							}
@@ -3003,7 +3094,7 @@ public class Op_Servlet extends HttpServlet {
 					   }
 					dados_tabela=dados_tabela+"\n</ons-card>\n";
 					dados_tabela=dados_tabela+"<ons-button modifier=\"large\" onclick=\"submete_checklist(0)\">Submeter</ons-button>";
-					System.out.println(dados_tabela);
+					//System.out.println(dados_tabela);
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
@@ -3012,11 +3103,11 @@ public class Op_Servlet extends HttpServlet {
 				}}
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 				
 			}else if(opt.equals("53")) {
-				System.out.println("guardando foto do checklist");
+				//System.out.println("guardando foto do checklist");
 				param1=req.getParameter("idCampo");
 				param2=req.getParameter("CampoNome");
 				param3=req.getParameter("idRelatorio");
@@ -3024,10 +3115,10 @@ public class Op_Servlet extends HttpServlet {
 				param5=req.getParameter("recid");
 				param6=req.getParameter("site");
 				param7=req.getParameter("milestone");
-				System.out.println("idcampo:"+param1);
+				//System.out.println("idcampo:"+param1);
 				int id_vistoria=0;
 				if(param4.equals("NOVA")) {
-					rs=mysql.Consulta("select id_vistoria from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" order by id_vistoria desc limit 1");
+					rs=mysql.Consulta("select id_vistoria from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresaId()+" order by id_vistoria desc limit 1");
 					if(rs.next()) {
 						id_vistoria=rs.getInt(1)+1;
 					}else {
@@ -3037,12 +3128,12 @@ public class Op_Servlet extends HttpServlet {
 					id_vistoria=Integer.parseInt(param4);
 				}
 				String imageBase64 = req.getParameter("image64");
-				System.out.println(imageBase64);
+				//System.out.println(imageBase64);
 				//System.out.println(imageBase64);
 				byte[] imageByte= Base64.decodeBase64(imageBase64);
 				InputStream inputStream2= new ByteArrayInputStream(imageByte);
 				query="";
-							query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_foto,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist,campo_valor_str) values ("+id_vistoria+",'"+param2+"',"+param1+",?,"+param3+","+p.getEmpresaObj().getEmpresa_id()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Foto','ABERTA','"+p.get_PessoaUsuario()+"',?)";
+							query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_foto,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist,campo_valor_str) values ("+id_vistoria+",'"+param2+"',"+param1+",?,"+param3+","+p.getEmpresaObj().getEmpresaId()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Foto','ABERTA','"+p.get_PessoaUsuario()+"',?)";
 							PreparedStatement statement;
 							 
 							 statement = mysql.getConnection().prepareStatement(query,Statement.RETURN_GENERATED_KEYS);
@@ -3062,7 +3153,7 @@ public class Op_Servlet extends HttpServlet {
 						        	statement.close();
 						        	Document rolloutUpdate = new Document();
 						        	Document rolloutfiltro = new Document();
-						        	rolloutfiltro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+						        	rolloutfiltro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 						        	rolloutfiltro.append("recid", Integer.parseInt(param5));
 						        	rs=mysql.Consulta("select relatorio_nome from vistoria_report where id="+param3);
 						        	if(rs.next()) {
@@ -3075,7 +3166,7 @@ public class Op_Servlet extends HttpServlet {
 						        	Document ComandoUpdate = new Document();
 						        	ComandoUpdate.append("$set", rolloutUpdate);
 						        	mongo.AtualizaUm("rollout", rolloutfiltro, ComandoUpdate);
-						        	query="insert into vistoria_dados_log (vistoria_dados_id,vistoria_dados_operacao,dt_operacao,status_operacao,usuario_operacao,empresa) values ("+vistoria_dados_id+",'ENVIO','"+time+"','SUCESSO','"+p.get_PessoaUsuario()+"',"+p.getEmpresaObj().getEmpresa_id()+")";
+						        	query="insert into vistoria_dados_log (vistoria_dados_id,vistoria_dados_operacao,dt_operacao,status_operacao,usuario_operacao,empresa) values ("+vistoria_dados_id+",'ENVIO','"+time+"','SUCESSO','"+p.get_PessoaUsuario()+"',"+p.getEmpresaObj().getEmpresaId()+")";
 									mysql.Inserir_simples(query);
 						     }
 					    
@@ -3086,14 +3177,14 @@ public class Op_Servlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print("OK");
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("54")) {
 				param1=req.getParameter("id_dados");
 				ServletOutputStream out = resp.getOutputStream();
 				query="";
 				Blob image = null;
 				
-				query="select campo_valor_foto from vistoria_dados where id="+param1+" and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' and status_vistoria<>'CANCELADO'";
+				query="select campo_valor_foto from vistoria_dados where id="+param1+" and empresa='"+p.getEmpresaObj().getEmpresaId()+"' and status_vistoria<>'CANCELADO'";
 				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					//System.out.println(" foto encontrada");
@@ -3109,7 +3200,7 @@ public class Op_Servlet extends HttpServlet {
 				}
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 			}else if(opt.equals("55")) {
 				param1=req.getParameter("id_dados");
@@ -3118,7 +3209,7 @@ public class Op_Servlet extends HttpServlet {
 			}else if(opt.equals("56")) {
 				param1=req.getParameter("idVistoria");
 				String flag="Y";
-				query="select status_vistoria from vistoria_dados where id_vistoria="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id();
+				query="select status_vistoria from vistoria_dados where id_vistoria="+param1+" and empresa="+p.getEmpresaObj().getEmpresaId();
 				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					rs.beforeFirst();
@@ -3131,7 +3222,7 @@ public class Op_Servlet extends HttpServlet {
 					}
 				}
 				if(flag.equals("Y")) {
-				query="update vistoria_dados set status_vistoria='CANCELADO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" and owner='"+p.get_PessoaUsuario()+"'";
+				query="update vistoria_dados set status_vistoria='CANCELADO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+param1+" and empresa="+p.getEmpresaObj().getEmpresaId()+" and owner='"+p.get_PessoaUsuario()+"'";
 				if(mysql.Alterar(query)) {
 					resp.setContentType("application/html");  
 					resp.setCharacterEncoding("UTF-8"); 
@@ -3147,14 +3238,14 @@ public class Op_Servlet extends HttpServlet {
 			}else if(opt.equals("57")) {
 				param1=req.getParameter("idVistoria");
 				param2 = req.getParameter("recid");
-				query="update vistoria_dados set status_vistoria='EM_APROVACAO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+param1+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" and owner='"+p.get_PessoaUsuario()+"' and status_vistoria in ('ABERTA','REJEITADO')";
+				query="update vistoria_dados set status_vistoria='EM_APROVACAO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+param1+" and empresa="+p.getEmpresaObj().getEmpresaId()+" and owner='"+p.get_PessoaUsuario()+"' and status_vistoria in ('ABERTA','REJEITADO')";
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				if(mysql.Alterar(query)) {
 					Document rolloutUpdate = new Document();
 		        	Document rolloutfiltro = new Document();
-		        	rolloutfiltro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+		        	rolloutfiltro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 		        	rolloutfiltro.append("recid", Integer.parseInt(param2));
 		        	
 		        	rolloutUpdate.append("ChecklistStatus", "Em Aprovação");
@@ -3175,21 +3266,22 @@ public class Op_Servlet extends HttpServlet {
 				param6=req.getParameter("site");
 				param7=req.getParameter("milestone");
 				param8=req.getParameter("valor");
+				String param9=req.getParameter("campoTipo");
 				//System.out.println("idcampo:"+param1);
 				int id_vistoria=0;
 				if(param4.equals("NOVA")) {
-					rs=mysql.Consulta("select id_vistoria from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresa_id()+" order by id_vistoria desc limit 1");
+					rs=mysql.Consulta("select id_vistoria from vistoria_dados where empresa="+p.getEmpresaObj().getEmpresaId()+" order by id_vistoria desc limit 1");
 					if(rs.next()) {
 						id_vistoria=rs.getInt(1)+1;
 					}else {
 						id_vistoria=1;
 					}
 					query="";
-					query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_str,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist) values ("+id_vistoria+",'"+param2+"',"+param1+",'"+param8+"',"+param3+","+p.getEmpresaObj().getEmpresa_id()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Texto','ABERTA','"+p.get_PessoaUsuario()+"')";
+					query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_str,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist) values ("+id_vistoria+",'"+param2+"',"+param1+",'"+param8+"',"+param3+","+p.getEmpresaObj().getEmpresaId()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','"+param9+"','ABERTA','"+p.get_PessoaUsuario()+"')";
 					mysql.Inserir_simples(query);
 					Document rolloutUpdate = new Document();
 		        	Document rolloutfiltro = new Document();
-		        	rolloutfiltro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+		        	rolloutfiltro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 		        	rolloutfiltro.append("recid", Integer.parseInt(param5));
 		        	rs=mysql.Consulta("select relatorio_nome from vistoria_report where id="+param3);
 		        	if(rs.next()) {
@@ -3205,16 +3297,16 @@ public class Op_Servlet extends HttpServlet {
 				}else {
 					id_vistoria=Integer.parseInt(param4);
 					query="";
-					query="update vistoria_dados set campo_valor_str='"+param8+"',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+id_vistoria+" and campo='"+param2+"' and relatorio_id="+param3+" and empresa="+p.getEmpresaObj().getEmpresa_id()+" and recid="+param5;
+					query="update vistoria_dados set campo_valor_str='"+param8+"',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+id_vistoria+" and campo='"+param2+"' and relatorio_id="+param3+" and empresa="+p.getEmpresaObj().getEmpresaId()+" and recid="+param5;
 					if(mysql.Alterar2(query)>0){
 						
 					}else {
 						query="";
-						query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_str,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist) values ("+id_vistoria+",'"+param2+"',"+param1+",'"+param8+"',"+param3+","+p.getEmpresaObj().getEmpresa_id()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','Texto','ABERTA','"+p.get_PessoaUsuario()+"')";
+						query="insert into vistoria_dados (id_vistoria,campo,campo_id,campo_valor_str,relatorio_id,empresa,recid,SiteID,milestone,owner,dt_updated,update_by,campo_tipo,status_vistoria,executor_checklist) values ("+id_vistoria+",'"+param2+"',"+param1+",'"+param8+"',"+param3+","+p.getEmpresaObj().getEmpresaId()+","+param5+",'"+param6+"','"+param7+"','"+p.get_PessoaUsuario()+"','"+time+"','"+p.get_PessoaUsuario()+"','"+param9+"','ABERTA','"+p.get_PessoaUsuario()+"')";
 						mysql.Inserir_simples(query);
 						Document rolloutUpdate = new Document();
 			        	Document rolloutfiltro = new Document();
-			        	rolloutfiltro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+			        	rolloutfiltro.append("Empresa", p.getEmpresaObj().getEmpresaId());
 			        	rolloutfiltro.append("recid", Integer.parseInt(param5));
 			        	rs=mysql.Consulta("select relatorio_nome from vistoria_report where id="+param3);
 			        	if(rs.next()) {
@@ -3236,9 +3328,9 @@ public class Op_Servlet extends HttpServlet {
 			}else if(opt.equals("59")) {
 				Bson filtro;
 				dados_tabela="";
-				System.out.println("Buscando Menu principal");
+				//System.out.println("Buscando Menu principal");
 				List<Bson> filtros = new ArrayList<>();
-				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+				filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 				filtros.add(filtro);
 				filtro= Filters.eq("Usuario",p.get_PessoaUsuario());
 				filtros.add(filtro);
@@ -3246,7 +3338,7 @@ public class Op_Servlet extends HttpServlet {
 				MongoCursor<Document> resultado = findIterable.iterator();
 				if(resultado.hasNext()) {
 					Document menu;
-					System.out.println("Montando Menus");
+					//System.out.println("Montando Menus");
 					while(resultado.hasNext()) {
 						menu = resultado.next();
 						List<Document> modulos = (List<Document>) menu.get("Modulos");
@@ -3272,7 +3364,7 @@ public class Op_Servlet extends HttpServlet {
 							    "</ons-card>";
 							}else if(modulos.get(cont).getString("nome").equals("Atividades")) {
 								
-								dados_tabela=dados_tabela+"<ons-card class=\"animated bounceInUp\" onclick=\"navega('Atividades_info')\">\n" + 
+								dados_tabela=dados_tabela+"<ons-card class=\"animated bounceInUp\" onclick=\"navega('TemplateAtividades_info_tab')\">\n" + 
 										"      <div class=\"title\">Atividades</div>\n" + 
 										"      <div class=\"content\"><label>Minhas Atividades : </label><div class=\"lbltaskcount\" id=\"quantidade_atividades_label\" style=\"font-size:32px;color:white;display:inline-block\" ><ons-progress-circular indeterminate></ons-progress-circular></div></div>\n" + 
 										"    </ons-card>";
@@ -3293,8 +3385,295 @@ public class Op_Servlet extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
-			}
-			
+			}else if(opt.equals("60")) {
+				System.out.println("buscando foto Modelo");
+				param1=req.getParameter("id_campo");
+				
+
+				query="select foto_modelo from vistoria_campos where field_id="+param1+" and empresa="+p.getEmpresaObj().getEmpresaId();
+				//System.out.println(query);
+				rs=mysql.Consulta(query);
+				ServletOutputStream out = resp.getOutputStream();
+				InputStream in=null;
+				if(rs.next()){
+					//System.out.println("Entrou no Blob");
+					Blob imageBlob = rs.getBlob(1);
+					in = imageBlob.getBinaryStream(1,(int)imageBlob.length());
+					
+			        int length = (int) imageBlob.length();
+
+			        int bufferSize = 1024;
+			        byte[] buffer = new byte[bufferSize];
+
+			        while ((length = in.read(buffer)) != -1) {
+			            //System.out.println("writing " + length + " bytes");
+			            out.write(buffer, 0, length);
+			        }
+
+			        
+				    //System.out.println(dados_tabela);
+			        resp.setContentType("image/png");  
+			    	//resp.setCharacterEncoding("UTF-8"); 
+			    	in.close();
+			        out.flush();
+			    	//out.print(dados_tabela);
+			}}else if(opt.equals("61")){
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" buscando quantidade de atividades");
+				System.out.println("******buscando quantidade atividades fechadas para "+p.get_PessoaUsuario());
+				Long qtde_atividades;
+				qtde_atividades=(long) 0;
+				Bson filtro;
+				List<Bson> filtros = new ArrayList<Bson>();
+				
+				rs=mysql.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresaId());
+				if(rs.next()) {
+					//System.out.println("Achou milestones");
+					rs.beforeFirst();
+					while(rs.next()) {
+						filtros = new ArrayList<Bson>();
+						filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
+						filtros.add(filtro);
+						
+						filtro= Filters.elemMatch("Milestone", Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario()));
+						filtros.add(filtro);
+						filtro= Filters.elemMatch("Milestone", Filters.not(Filters.eq("edate_"+rs.getString(1),"")));
+						filtros.add(filtro);
+						//System.out.println(rs.getString(1));
+						try {
+						FindIterable<Document> finddocuments = mongo.ConsultaSimplesComFiltro("rollout", filtros);
+						
+						MongoCursor<Document> resultado = finddocuments.iterator();
+						
+						if(resultado.hasNext()) {
+						
+							Document atividade;
+							while(resultado.hasNext()) {
+								atividade=resultado.next();
+								qtde_atividades=qtde_atividades+1;
+							}
+						}}catch(Exception e) {
+							System.out.println(e.getCause());
+							System.out.println(e.getMessage());
+						}
+						
+					}
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(qtde_atividades);
+				}else {
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(0);
+				}
+				
+				mongo.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("62")){
+				
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" carregando Atvidades do Rollout");
+				query="";
+				String dstart="";
+				String start="";
+				String fim="";
+				String responsavel="";
+				String dfim="";
+				String comentarios="";
+				String duracao= "";
+				String lat="";
+				String lng="";
+				String imagem_status= "notstarted.png";
+				String bt_texto="";
+				
+				Bson filtro;
+				Document linha_rollout=new Document();
+				Document milestone=new Document();
+				Document site=new Document();
+				List<Bson> lista_filtro = new ArrayList<>();
+				List<Bson> lista_filtro_site = new ArrayList<>();
+				List<Document> milestones = new ArrayList<>();
+				rs=mysql.Consulta("select distinct field_name from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresaObj().getEmpresaId());
+				if(rs.next()) {
+					rs.beforeFirst();
+					while(rs.next()) {
+						filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
+						lista_filtro.add(filtro);
+						filtro= Filters.elemMatch("Milestone", Filters.not(Filters.eq("edate_"+rs.getString(1),"")));
+						lista_filtro.add(filtro);
+						filtro= Filters.elemMatch("Milestone",Filters.eq("resp_"+rs.getString(1),p.get_PessoaUsuario()));
+						lista_filtro.add(filtro);
+						FindIterable<Document> findIterable2;
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout", lista_filtro);
+						MongoCursor<Document> resultado = findIterable.iterator();
+						if(resultado.hasNext()) {
+							while(resultado.hasNext()) {
+								linha_rollout=resultado.next();
+								lista_filtro_site.clear();
+								filtro=Filters.and(Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId()),Filters.eq("site_id",linha_rollout.getString("Site ID")));
+								lista_filtro_site.add(filtro);
+								findIterable2=mongo.ConsultaCollectioncomFiltrosLista("sites", lista_filtro_site);
+								MongoCursor<Document> resultado2 = findIterable2.iterator();
+								if(resultado2.hasNext()) {
+									//System.out.println("achou site id:"+linha_rollout.getString("Site ID"));
+									site=resultado2.next();
+									if(site.isEmpty()) {
+										lat="0.0";
+										lng="0.0";
+									}else {
+										lat=site.getString("site_latitude");
+										lng=site.getString("site_longitude");
+										//System.out.println("Coordenadas:"+lat+","+lng);
+									}
+								}else {
+									lat="0.0";
+									lng="0.0";
+								}
+								milestones = (List<Document>) linha_rollout.get("Milestone");
+								for(int indice=0;indice<milestones.size();indice++) {
+									milestone=milestones.get(indice);
+									if(milestone.getString("Milestone").equals(rs.getString(1))) {
+										if(milestone.get("sdate_"+rs.getString(1))!=null && !milestone.get("sdate_"+rs.getString(1)).equals("")){
+											start=f2.format(milestone.getDate("sdate_"+rs.getString(1)));
+										}else {
+											start="Não Iniciado";
+										}
+										if(milestone.get("edate_"+rs.getString(1))!=null && !milestone.get("edate_"+rs.getString(1)).equals("")){
+											fim=f2.format(milestone.getDate("edate_"+rs.getString(1)));
+										}else {
+											fim="Não Finalizado";
+										}
+										if(milestone.get("resp_"+rs.getString(1))!=null && !milestone.get("resp_"+rs.getString(1)).equals("")){
+											responsavel=milestone.getString("resp_"+rs.getString(1));
+										}else {
+											responsavel="";
+										}
+										if(milestone.get("udate_"+rs.getString(1))!=null && !milestone.get("udate_"+rs.getString(1)).equals("")){
+											comentarios=milestone.getString("udate_"+rs.getString(1));
+										}else {
+											comentarios="Sem Anaotações";
+										}
+										if(milestone.get("duracao_"+rs.getString(1))!=null && !milestone.get("duracao_"+rs.getString(1)).equals("")){
+											duracao=milestone.get("duracao_"+rs.getString(1)).toString();
+										}else {
+											duracao="";
+										}
+										if(milestone.get("sdate_pre_"+rs.getString(1))!=null && !milestone.get("sdate_pre_"+rs.getString(1)).equals("")){
+											dstart=f2.format(milestone.getDate("sdate_pre_"+rs.getString(1)));
+										}else {
+											dstart="";
+										}
+										if(milestone.get("edate_pre_"+rs.getString(1))!=null && !milestone.get("edate_pre_"+rs.getString(1)).equals("")){
+											dfim=f2.format(milestone.getDate("edate_pre_"+rs.getString(1)));
+										}else {
+											dfim="";
+										}
+										if(milestone.get("status_"+rs.getString(1)).equals("Finalizada")) {
+		    								imagem_status="finished.png";
+		    							}else if(milestone.get("status_"+rs.getString(1)).equals("parada")) {
+		    								imagem_status="stopped.png";
+		    								
+		    								bt_texto="Continuar";
+		    							}else if(milestone.get("status_"+rs.getString(1)).equals("iniciada")) {
+		    								imagem_status="started.png";
+		    								bt_texto="Parar";
+		    								
+		    							}else {
+		    								imagem_status="notstarted.png";
+		    								bt_texto="Iniciar";
+		    								
+		    							}
+										indice=999;
+									}
+								}
+								String relatorios="";
+								String relatorios_fotos="";
+								ResultSet rs4;
+								rs2 = mysql.Consulta("select distinct relatorio_id from vistoria_dados where recid="+linha_rollout.getInteger("recid")+" and milestone='"+milestone.getString("Milestone")+"' and campo_tipo='Foto' and empresa="+p.getEmpresaObj().getEmpresaId()+" group by relatorio_id");
+								if(rs2.next()) {
+									rs2.beforeFirst();
+									relatorios="<ul>";
+									while(rs2.next()) {
+										rs3=mysql.Consulta("select * from vistoria_report where id="+rs2.getInt("relatorio_id")+" and empresa="+p.getEmpresaObj().getEmpresaId());
+										rs4 = mysql.Consulta("select distinct id from vistoria_dados where relatorio_id="+rs2.getInt("relatorio_id")+" and recid="+linha_rollout.getInteger("recid")+" and milestone='"+milestone.getString("Milestone")+"' and campo_tipo='Foto' and empresa="+p.getEmpresaObj().getEmpresaId()+" and status_vistoria='APROVADO'");
+										if(rs3.next()) {
+											relatorios=relatorios+"<li><a class='linkFundoPreto' href='#' onclick=exibeListaFoto('images_"+rs2.getInt("relatorio_id")+"_"+linha_rollout.getInteger("recid")+"_"+milestone.getString("Milestone")+"')>"+rs3.getString("relatorio_nome")+"</a></li>";
+										}
+										if(rs4.next()) {
+											relatorios_fotos=relatorios_fotos+"<div style='display:none'><ul id='images_"+rs2.getInt("relatorio_id")+"_"+linha_rollout.getInteger("recid")+"_"+milestone.getString("Milestone")+"'>";
+											rs4.beforeFirst();
+											while(rs4.next()) {
+												relatorios_fotos=relatorios_fotos+"<li><img src='https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet?opt=63&id_campo="+rs4.getInt("id")+"'></li>";
+											}
+											relatorios_fotos=relatorios_fotos+"</ul></div>";
+										}
+									}
+									relatorios=relatorios+"</ul>";
+									relatorios=relatorios+relatorios_fotos;
+								}else {
+									relatorios="Sem relatórios para essa atividade";
+								}
+								dados_tabela=dados_tabela+"<ons-card >\n"+
+									      "<div class='title' style='display:block'>"+milestone.getString("Milestone")+"<div style='float:right'><img src='img/"+imagem_status+"'></div></div>\n"+
+									      "<div class=\"content\"><div>Site:"+linha_rollout.getString("Site ID")+"</div><div>Planejamento:"+dstart+" - "+ dfim+"</div><div>Inicio Real: "+start+"<br>Fim Real: "+fim+"<br>Duração(D): "+duracao+"<br>Reponsável: "+responsavel+"</div><div>Comentários: "+comentarios+"</div><hr><br>"
+									      +"<section style='padding:5px'>"
+										  +"    <div>Relatório Fotográfico:</div>"
+										  +"    <div>"+relatorios+"</div>"
+									      + "</section></div>"+		
+									     // + "<section style='padding:10px'><ons-button modifier=\"large\" style=\"border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','"+rs.getString("status_atividade")+"','"+rs.getString("value_atbr_field")+"')\">"+bt_texto+"</ons-button><ons-button modifier=\"large\" style=\"background:green;border-radius: 5%;height:30px;text-align:center;display:table-cell;vertical-align:middle;font-size:30px;margin: auto;\" onclick=\"atualiza_rollout("+rs.getString("recid")+",'"+rs.getString("milestone")+"','Finalizada','"+rs.getString("value_atbr_field")+"')\">Completar</ons-button></section></div>\n"+
+									    "\n</ons-card>\n";
+							}
+						}
+					lista_filtro.clear();
+					}
+				}
+				
+				
+					//System.out.println(dados_tabela);
+					resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
+					mongo.fecharConexao();
+    				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+    				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("63")) {
+				//System.out.println("buscando foto Modelo");
+				param1=req.getParameter("id_campo");
+				
+
+				query="select campo_valor_foto from vistoria_dados where id="+param1+" and empresa="+p.getEmpresaObj().getEmpresaId();
+				//System.out.println(query);
+				rs=mysql.Consulta(query);
+				ServletOutputStream out = resp.getOutputStream();
+				InputStream in=null;
+				if(rs.next()){
+					//System.out.println("Entrou no Blob");
+					Blob imageBlob = rs.getBlob(1);
+					in = imageBlob.getBinaryStream(1,(int)imageBlob.length());
+					
+			        int length = (int) imageBlob.length();
+
+			        int bufferSize = 1024;
+			        byte[] buffer = new byte[bufferSize];
+
+			        while ((length = in.read(buffer)) != -1) {
+			            //System.out.println("writing " + length + " bytes");
+			            out.write(buffer, 0, length);
+			        }
+
+			        
+				    //System.out.println(dados_tabela);
+			        resp.setContentType("image/png");  
+			    	//resp.setCharacterEncoding("UTF-8"); 
+			    	in.close();
+			        out.flush();
+			    	//out.print(dados_tabela);
+			}}
+				mysql.getConnection().commit();
+				mysql.fecharConexao();
+				mongo.fecharConexao();
 	 }catch (SQLException e) {
 				
 				e.printStackTrace();
@@ -3366,7 +3745,7 @@ public class Op_Servlet extends HttpServlet {
 				//System.out.println(param5.substring(param5.indexOf(" ")+1));
 				insere="";
 					insere="INSERT INTO registros (id_sistema,empresa,usuario,latitude,longitude,data_dia,distancia,datetime_mobile,datetime_servlet,hora,minutos,tipo_registro,local_registro,tipo_local_registro,site_operadora_registro,mes) "
-							+ "VALUES ('1','"+p.getEmpresaObj().getEmpresa_id()+"','"+usuario+"','"+param1+"','"+param2+"','"+f2.format(d.getTime())+"',"+param4+",'"+param5+"','"+date_sql.toString()+" "+param5.substring(param5.indexOf(" ")+1)+"',"+aux_hora+","+aux_min+",'"+tipo_registro+"','"+array_string_aux[0]+"','"+array_string_aux[1]+"','"+array_string_aux[2]+"',"+(d.get(Calendar.MONTH)+1)+")";
+							+ "VALUES ('1','"+p.getEmpresaObj().getEmpresaId()+"','"+usuario+"','"+param1+"','"+param2+"','"+f2.format(d.getTime())+"',"+param4+",'"+param5+"','"+date_sql.toString()+" "+param5.substring(param5.indexOf(" ")+1)+"',"+aux_hora+","+aux_min+",'"+tipo_registro+"','"+array_string_aux[0]+"','"+array_string_aux[1]+"','"+array_string_aux[2]+"',"+(d.get(Calendar.MONTH)+1)+")";
 					//System.out.println(insere);
 					if(mysql.Inserir_simples(insere)){
 			    		System.out.println("Registro Cadastrado");
@@ -3382,7 +3761,7 @@ public class Op_Servlet extends HttpServlet {
 						properties.append("Coordenadas", param1+","+param2);
 						geo.append("properties", properties);
     					registro.append("Usuario", p.get_PessoaUsuario());
-    					registro.append("Empresa", p.getEmpresaObj().getEmpresa_id());
+    					registro.append("Empresa", p.getEmpresaObj().getEmpresaId());
     					registro.append("data_dia", d.getTime());
     					registro.append("data_dia_string", f2.format(d.getTime()));
     					registro.append("datetime_mobile", param5);

@@ -44,11 +44,11 @@ public class ConexaoMongo {
 		
 	
 	
-	String host = "localhost:27017";
-	String dbname = "XXX";
-    String user = "XXX";
-    String password = "r2d2c3p0";
-    
+	String host = "*";
+	String dbname = "*";
+    String user = "*";
+    String password = "*";
+   
 
     /*credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
      mongoClient = new MongoClient(new ServerAddress(host), Arrays.asList(credential));
@@ -102,6 +102,13 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 	}
 	public FindIterable<Document> ConsultaSimplesSemFiltro(String Collection){
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document());
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaOrdenadaSemFiltroListaLimit1(String Collection,String CampoOrdem,int ordem){
+		Document ordenacao=new Document();
+		ordenacao.append(CampoOrdem, ordem);
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find().sort(ordenacao).limit(1);
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaSimplesSemFiltroInicioLimit(String Collection,Integer inicio,Integer limit,int empresa){

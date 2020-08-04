@@ -24,6 +24,8 @@ function atualiza_rollout(recid,milestone,status,siteid){
         	  modal.hide();
             $.alert(data.toString());
             carrega_minhas_atividades();
+            carrega_atividades_quantidade_label_fechadas();
+            carrega_minhas_atividades_fechadas();
           }
 	
 }
@@ -43,7 +45,46 @@ function carrega_minhas_atividades(){
 	            $('#lista_atividades').html(data);
 	          }
 	 }
+function carrega_minhas_atividades_fechadas(){
+	   var timestamp = Date.now();
+	            $.ajax({
+	                  type: "POST",
+	                  data: {"opt":62,
+	                  "_":timestamp},		  
+	                  url: "https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+	                  //url: "./POControl_Servlet""
+	                  cache: false,
+	                  dataType: "text",
+	                  success: onSuccess_minhas_atividades_fechdas
+	          });
+	          function onSuccess_minhas_atividades_fechdas(data){
+	            $('#lista_atividades_fechadas').html(data);
+	          }
+	 }
 
+function carrega_atividades_quantidade_label_fechadas(){
+	 
+	   var timestamp = Date.now();
+	       $.ajax({
+			  type: "POST",
+			  data: {"opt":61,
+	             "_":timestamp},		  
+			  url: "https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
+			  //url: "./POControl_Servlet""
+			  cache: false,
+			  dataType: "text",
+			  success: onSuccessSaldoAtividades_label_fechadas,
+	      error: onerror_saldo_atividades_fechadas
+			});
+	    function onSuccessSaldoAtividades_label_fechadas(data){
+	    	document.getElementById('ons-tab1').setAttribute('badge', data);
+	    	document.getElementById('ons-tab0').setAttribute('badge', sessionStorage.getItem("label_atividades"));
+	      //animateCSS('quantidade_atividades_label', 'tada');
+	    }
+	    function onerror_saldo_atividades_fechadas(data){
+	      alert("Parece que estamos com problemas na conexao com a internet.Reinicie o app");
+	    }
+	}
 function carrega_atividades_quantidade_label(){
 	 
 	   var timestamp = Date.now();
@@ -60,9 +101,10 @@ function carrega_atividades_quantidade_label(){
 			});
 	    function onSuccessSaldoAtividades_label(data){
 	      $("#quantidade_atividades_label").html(data);
+	      sessionStorage.setItem("label_atividades",data);
 	      //animateCSS('quantidade_atividades_label', 'tada');
 	    }
 	    function onerror_saldo_atividades(data){
-	      alert("Parece que estamos com problemas na conexao com a internet.Reinicie o app")
+	      alert("Parece que estamos com problemas na conexao com a internet.Reinicie o app");
 	    }
 	}

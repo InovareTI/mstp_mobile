@@ -14,7 +14,7 @@ public class Feriado {
 	
 	public Boolean verifica_feriado(String data, Conexao c,Pessoa p) {
 		ResultSet rs;
-		rs=c.Consulta("select * from feriados where dt_inicio='"+data+"' and empresa="+p.getEmpresaObj().getEmpresa_id());
+		rs=c.Consulta("select * from feriados where dt_inicio='"+data+"' and empresa="+p.getEmpresaObj().getEmpresaId());
 		try {
 			if(rs.next()) {
 				return true;

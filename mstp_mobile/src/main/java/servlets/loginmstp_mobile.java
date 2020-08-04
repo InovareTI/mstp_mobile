@@ -119,7 +119,7 @@ public class loginmstp_mobile extends HttpServlet {
 	        String vinculo_flag=req.getParameter("vinculo_flag");
 	        System.out.println("pegou vinculo:"+vinculo_flag);
 	        System.out.println("versao:"+versao_mobile);
-	        if(!versao_mobile.equals("1.68")) {
+	        if(!versao_mobile.equals("1.70")) {
 	        	System.out.println("deu problema de versao");
 	        	resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
@@ -190,7 +190,7 @@ public class loginmstp_mobile extends HttpServlet {
                 Pessoa p=new Pessoa();
                 p.set_PessoaUsuario(rs.getString("id_usuario"));
                 p.setEmpresa(rs.getString("empresa"));
-                p.getEmpresaObj().setEmpresa_id(Integer.parseInt(rs.getString("empresa")));
+                p.getEmpresaObj().setEmpresaId(Integer.parseInt(rs.getString("empresa")));
                 p.getEmpresaObj().define_empresa(con, rs.getString("empresa"));
                 p.set_PessoaPerfil(rs.getString("perfil"));
                 p.setPerfil_funcoes(con);
@@ -244,7 +244,7 @@ public class loginmstp_mobile extends HttpServlet {
 	                	last_login_localidade=rs3.getString("local_registro");
 	                	last_login_localidade_site=rs3.getString("tipo_local_registro");
 	                	
-	                	 rs2=con.Consulta("SELECT * FROM registros where usuario='"+req.getParameter("user")+"' and chave_registros='"+rs3.getString("chave_registros")+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresa_id()+"' order by datetime_servlet asc limit 1");
+	                	 rs2=con.Consulta("SELECT * FROM registros where usuario='"+req.getParameter("user")+"' and chave_registros='"+rs3.getString("chave_registros")+"' and tipo_registro='Entrada' and empresa='"+p.getEmpresaObj().getEmpresaId()+"' order by datetime_servlet asc limit 1");
 	                     if(rs2.next()) {
 	                     	c = Calendar.getInstance();
 	                     	long dif = 0;
@@ -271,7 +271,7 @@ public class loginmstp_mobile extends HttpServlet {
 				}
                 int tempo_expediente=0;
                 //System.out.println("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
-                rs3=con.Consulta("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresa_id()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
+                rs3=con.Consulta("SELECT * FROM expediente where empresa="+p.getEmpresaObj().getEmpresaId()+" and dia_expediente="+now.get(Calendar.DAY_OF_WEEK));
                 String autorizacao_previa="";
                 if(rs3.next()) {
                 	autorizacao_previa=rs3.getString("autoriza_previa_he");
@@ -297,7 +297,7 @@ public class loginmstp_mobile extends HttpServlet {
                 }else {}
                 con.Inserir_simples("insert into log_mstp (usuario,operacao,dt_oper) values ('"+req.getParameter("user")+"','LOGIN APP','"+time+"');");
                
-                rs3=con.Consulta("select * from registro_foto_controle where Empresa="+p.getEmpresaObj().getEmpresa_id());
+                rs3=con.Consulta("select * from registro_foto_controle where Empresa="+p.getEmpresaObj().getEmpresaId());
                 if(rs3.next()) {
                 	foto_entrada = rs3.getString("Entrada");
                 	foto_ini_inter =rs3.getString("Ini_inter");
@@ -311,7 +311,31 @@ public class loginmstp_mobile extends HttpServlet {
                     foto_saida ="false";
                     ponto_office ="false";
                 }
-                dados="[[\"ok\"],[\""+rs.getString("perfil")+"\"],[\""+rs.getString("ultimo_acesso")+"\"],[\""+p.getEmpresa()+"\"],[\""+p.getEscritorio()+"\"],[\""+p.getEscritorio_lat()+"\"],[\""+p.getEscritorio_lng()+"\"],[\""+last_login_type+"\"],[\""+last_login_time+"\"],["+daySeconds+"],[\""+p.get_PessoaName()+"\"],[\""+p.getEmpresaObj().getNome()+"\"],["+p.getExpediente().getExpdiente_intervalo_minutos()+"],[\""+foto_entrada+"\"],[\""+foto_ini_inter+"\"],[\""+foto_fim_inter+"\"],[\""+foto_saida+"\"],[\""+ponto_office+"\"],[\""+p.getPessoaLider()+"\"],[\""+autorizacao_previa+"\"],[\""+last_login_localidade+"\"],[\""+last_login_localidade_site+"\"],["+tempo_expediente+"],[\""+p.get_PessoaTipo()+"\"]]";
+                dados="[[\"ok\"],"
+                		+ "[\""+rs.getString("perfil")+"\"],"
+                		+ "[\""+rs.getString("ultimo_acesso")+"\"],"
+                		+ "[\""+p.getEmpresa()+"\"],"
+                		+ "[\""+p.getEscritorio()+"\"],"
+                		+ "[\""+p.getEscritorio_lat()+"\"],"
+                		+ "[\""+p.getEscritorio_lng()+"\"],"
+                		+ "[\""+last_login_type+"\"],"
+                		+ "[\""+last_login_time+"\"],"
+                		+ "["+daySeconds+"],"
+                		+ "[\""+p.get_PessoaName()+"\"],"
+                		+ "[\""+p.getEmpresaObj().getNome()+"\"],"
+                		+ "["+p.getExpediente().getExpdiente_intervalo_minutos()+"],"
+                		+ "[\""+foto_entrada+"\"],"
+                		+ "[\""+foto_ini_inter+"\"],"
+                		+ "[\""+foto_fim_inter+"\"],"
+                		+ "[\""+foto_saida+"\"],"
+                		+ "[\""+ponto_office+"\"],"
+                		+ "[\""+p.getPessoaLider()+"\"],"
+                		+ "[\""+autorizacao_previa+"\"],"
+                		+ "[\""+last_login_localidade+"\"],"
+                		+ "[\""+last_login_localidade_site+"\"],"
+                		+ "["+tempo_expediente+"],"
+                		+ "[\""+p.get_PessoaTipo()+"\"],"
+                		+ "[\""+p.getEmpresaObj().getMstpFree()+"\"]]";
                 rs.close();
                 rs=null;
                 System.out.println(dados);
@@ -320,7 +344,7 @@ public class loginmstp_mobile extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print(dados);
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Login usuario -  "+ p.get_PessoaUsuario()+" | Versao APP:"+versao_mobile+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Login usuario -  "+ p.get_PessoaUsuario()+" | Versao APP:"+versao_mobile+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
         			}else {
         				System.out.println("senha incorreta para - "+req.getParameter("user") +" versao:"+versao_mobile);
            			 rs.close();

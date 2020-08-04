@@ -89,7 +89,7 @@ function elimina_checklist(id,relatorio){
 		}
 	});
 }
-function atualiza_texto_checklist(valor,campoID,campoNome,relatorioID,idVistoria){
+function atualiza_texto_checklist(valor,campoID,campoNome,relatorioID,idVistoria,campoTipo){
 	var recid = sessionStorage.getItem("checklist_recid_aux");
 	var milestone = sessionStorage.getItem("checklist_milestone_aux");
 	var site =  sessionStorage.getItem("checklist_site_aux");
@@ -97,14 +97,15 @@ function atualiza_texto_checklist(valor,campoID,campoNome,relatorioID,idVistoria
 	 $.ajax({
 		  type: "POST",
 		  data: {"opt":58,
-			  "idVistoria":idVistoria,
-			  "valor":valor,
-			  "campoID":campoID,
-		  		"campoNome":campoNome,
-		  		"relatorioID":relatorioID,
-		  		"recid":recid,
-		  		"milestone":milestone,
-		  		"site":site},		  
+			"idVistoria":idVistoria,
+			"valor":valor,
+			"campoID":campoID,
+		  	"campoNome":campoNome,
+		  	"campoTipo":campoTipo,
+		  	"relatorioID":relatorioID,
+		  	"recid":recid,
+		  	"milestone":milestone,
+		  	"site":site},		  
 		  url: "https://inovareti.jelastic.saveincloud.net/mstp_mobile/Op_Servlet",	  
 		  //url: "./POControl_Servlet""
 		  cache: false,

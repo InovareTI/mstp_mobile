@@ -103,7 +103,7 @@ public class DiariasServletMobile extends HttpServlet {
 				espelho.setFunc_espelho(param1);
 				espelho.setSemana_espelho(param2);
 				espelho.setSaldo_espelho(param3);
-				espelho.setEmpresa(p.getEmpresaObj().getEmpresa_id());
+				espelho.setEmpresa(p.getEmpresaObj().getEmpresaId());
 				espelho.SalvaEspelho(mongo);
 			}catch(Exception e) {
 				try {
@@ -151,7 +151,7 @@ public class DiariasServletMobile extends HttpServlet {
 				out.print(despesa.getId_despesa());
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Diarias opt -  "+ opt+".Registro de Despesa. tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Diarias opt -  "+ opt+".Registro de Despesa. tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -183,14 +183,14 @@ public class DiariasServletMobile extends HttpServlet {
 				
 				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de operações opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 		}else if(opt.equals("4")) {
 			Timestamp time = new Timestamp(System.currentTimeMillis());
 			String dados_tabela;
-			double money; 
+			//double money; 
 			NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
-			String moneyString;
+			//String moneyString;
 			dados_tabela="{\"draw\": 1,\n";
 			dados_tabela=dados_tabela+"\"recordsTotal\": replace1 ,\n";
 			dados_tabela=dados_tabela+"\"recordsFiltered\": 5 ,\n";
@@ -198,7 +198,7 @@ public class DiariasServletMobile extends HttpServlet {
 			List<Bson> filtros = new ArrayList<>();
 			Document despesa;
 			Bson filtro;
-			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 			filtros.add(filtro);
 			filtro=Filters.not(Filters.eq("status_pagamento","PAGO"));
 			filtros.add(filtro);
@@ -234,7 +234,7 @@ public class DiariasServletMobile extends HttpServlet {
 			mongo.fecharConexao();
 			
 			Timestamp time2 = new Timestamp(System.currentTimeMillis());
-			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 	
 		}else if(opt.equals("5")) {
 			param1=request.getParameter("idDespesa");
@@ -243,7 +243,7 @@ public class DiariasServletMobile extends HttpServlet {
 			Document despesaupdate=new Document();
 			Document despesacomando=new Document();
 			despesafiltro.append("id_despesa",UUID.fromString(param1));
-			despesafiltro.append("Empresa",p.getEmpresaObj().getEmpresa_id());
+			despesafiltro.append("Empresa",p.getEmpresaObj().getEmpresaId());
 			despesafiltro.append("statusDespesa","EM REVISÃO");
 			despesaupdate.append("statusDespesa", "DELETADO");
 			despesaupdate.append("dt_ultima_mudanca", time);
@@ -258,7 +258,7 @@ public class DiariasServletMobile extends HttpServlet {
 			mongo.fecharConexao();
 			
 			Timestamp time2 = new Timestamp(System.currentTimeMillis());
-			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 	
 		}else if(opt.equals("6")) {
 			Timestamp time = new Timestamp(System.currentTimeMillis());
@@ -270,7 +270,7 @@ public class DiariasServletMobile extends HttpServlet {
 			NumberFormat formatter = NumberFormat.getCurrencyInstance();
 			List<Bson> filtros = new ArrayList<>();
 			Bson filtro;
-			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 			filtros.add(filtro);
 			filtro=Filters.eq("status_pagamento","PENDENTE");
 			filtros.add(filtro);
@@ -287,7 +287,7 @@ public class DiariasServletMobile extends HttpServlet {
 			}
 			System.out.println("2");
 			filtros = new ArrayList<>();
-			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 			filtros.add(filtro);
 			filtro=Filters.eq("status_pagamento","PENDENTE");
 			filtros.add(filtro);
@@ -317,13 +317,13 @@ public class DiariasServletMobile extends HttpServlet {
 				System.out.println(e.getMessage());
 			}
 		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
-			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			System.out.println("MSTP MOBILE - "+f3.format(time)+" "+p.getEmpresaObj().getNomeFantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Despesas opt -  "+ opt+" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 	
 		}else if(opt.equals("7")) {
 			List<Bson> filtros = new ArrayList<>();
 			Bson filtro;
 			Document categoria;
-			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 			filtros.add(filtro);
 			FindIterable<Document> findIterable = mongo.ConsultaOrdenadaFiltroLista("CategoriaDespesa", "dt_registro", -1, filtros);
 			MongoCursor<Document> resultado = findIterable.iterator();
@@ -344,7 +344,7 @@ public class DiariasServletMobile extends HttpServlet {
 			List<Bson> filtros = new ArrayList<>();
 			Bson filtro;
 			Document categoria;
-			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresa_id());
+			filtro=Filters.eq("Empresa",p.getEmpresaObj().getEmpresaId());
 			filtros.add(filtro);
 			FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("Projetos", filtros);
 			MongoCursor<Document> resultado = findIterable.iterator();

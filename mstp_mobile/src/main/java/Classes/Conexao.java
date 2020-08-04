@@ -18,7 +18,7 @@ public class Conexao
 			
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			
-			String databaseURL = "jdbc:mysql://localhost/mstpDB?user=root&password=r2d2c3p0";
+			String databaseURL = "jdbc:mysql://localhost/*?user=*&password=*";
 			Connection c = DriverManager.getConnection(databaseURL);
 			c.setAutoCommit(false);
 			this.connection=c;
