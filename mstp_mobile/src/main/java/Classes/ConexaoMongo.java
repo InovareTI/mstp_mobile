@@ -43,12 +43,12 @@ public class ConexaoMongo {
 	public ConexaoMongo() {
 		
 	
-	
-	String host = "*";
-	String dbname = "*";
-    String user = "*";
-    String password = "*";
-   
+	String host = "10.100.17.24:27017";
+	//String host = "localhost:27017";
+	String dbname = "mstpDB";
+    String user = "mstpwebDB";
+    //String password = "r2d2c3p0";
+    String password = "Zuvka6-7noxfy-d@hf1k";
 
     /*credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
      mongoClient = new MongoClient(new ServerAddress(host), Arrays.asList(credential));

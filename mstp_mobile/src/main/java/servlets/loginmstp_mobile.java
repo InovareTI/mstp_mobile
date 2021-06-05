@@ -191,7 +191,7 @@ public class loginmstp_mobile extends HttpServlet {
                 p.set_PessoaUsuario(rs.getString("id_usuario"));
                 p.setEmpresa(rs.getString("empresa"));
                 p.getEmpresaObj().setEmpresaId(Integer.parseInt(rs.getString("empresa")));
-                p.getEmpresaObj().define_empresa(con, rs.getString("empresa"));
+                p.getEmpresaObj().define_empresa(rs.getString("empresa"));
                 p.set_PessoaPerfil(rs.getString("perfil"));
                 p.setPerfil_funcoes(con);
                 p.set_PessoaName(rs.getString("nome"));

@@ -127,9 +127,11 @@ public class Empresa implements Serializable{
 	public void setMstpFree(Boolean mstp_free) {
 		this.mstpFree = mstp_free;
 	}
-	public void define_empresa(Conexao c, String empresa_codigo) {
+	public void define_empresa(String empresa_codigo) {
 		String query="";
 		ResultSet rs ;
+		Conexao c=new Conexao();
+		System.out.println("Buscando empresa:"+empresa_codigo);
 		query="select *  from empresas where id_empresa="+empresa_codigo;
 		rs=c.Consulta(query);
 		try {
@@ -152,9 +154,10 @@ public class Empresa implements Serializable{
 				}
 				
 			}
-			
+			c.fecharConexao();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
+			c.fecharConexao();
 			e.printStackTrace();
 		}
 	}
